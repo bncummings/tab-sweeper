@@ -27,7 +27,7 @@ for (const tab of tabs) {
 
   elements.add(element);
 }
-document.querySelector('ul').append(...elements);
+document.getElementById('google-doc-list').append(...elements);
 
 const button = document.querySelector('button');
 button.addEventListener('click', async () => {
