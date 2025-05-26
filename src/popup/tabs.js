@@ -7,21 +7,24 @@ class TabGroup {
     this.uris = [];
   }
 
-  addUri(uri) {
-    if (!this.uris.includes(uri)) {
+  addUris(...uris) {
+    uris.forEach((uri) => {
+      if (!this.uris.includes(uri)) {
       this.uris.push(uri);
       //update permissions
-    } else {
-      console.warn(`URI ${uri} already exists in group ${this.name}.`);
-    }
+      } else {
+        console.warn(`URI ${uri} already exists in group ${this.name}.`);
+      }
+    });
   }
 }
 
-// add a new tab group 
-function addGroup(groupName) {
+// factory method for a new tabGroup
+function createGroup(groupName) {
   if (!tabGroups.includes(groupName)) {
     const newGroup = new TabGroup(groupName)
     tabGroups.push(newGroup);
+    return newGroup;
   } else {
     console.warn(`A group with name: \"${groupName}\" already exists.`);
   }
@@ -39,4 +42,4 @@ function add(x, y) {
   return x + y;
 }
 
-module.exports =  { tabGroups, addGroup };
+export default  { tabGroups, createGroup };
