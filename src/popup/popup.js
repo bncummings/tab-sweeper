@@ -72,3 +72,4 @@ button.addEventListener('click', async () => {
     await chrome.tabGroups.update(group, { title: 'JS Docs' });
   }
 });
+

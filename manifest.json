@@ -3,20 +3,25 @@
   "name": "Tab Manager for Dev Docs",
   "version": "1.0",
   "icons": {
-    "16": "images/icon-16.png",
-    "32": "images/icon-32.png",
-    "48": "images/icon-48.png",
-    "128": "images/icon-128.png"
+    "16": "src/images/icon-16.png",
+    "32": "src/images/icon-32.png",
+    "48": "src/images/icon-48.png",
+    "128": "src/images/icon-128.png"
   },
 
   "action": {
-    "default_popup": "./popup/popup.html"
+    "default_popup": "./src/popup/popup.html"
   },
 
   "host_permissions": [
     "https://developer.chrome.com/*",
     "*://developer.mozilla.org/*",
     "*://www.w3schools.com/*"
+  ],
+
+  "optional_host_permissions":[
+    "https://*/*",
+    "http://*/*"
   ],
   
   "permissions": [
