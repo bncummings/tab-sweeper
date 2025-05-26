@@ -1,18 +1,33 @@
-const googleTabs = await chrome.tabs.query({
-  url: [
+import tabsModule from "./tabs.js";
+const { tabGroups, addGroup, createGroup } = tabsModule;
+
+const googleGroup = createGroup("Google");
+googleGroup.addUris(
     'https://developer.chrome.com/docs/webstore/*',
     'https://developer.chrome.com/docs/extensions/*'
-  ]
+  )
+
+console.log("googleGroup.uris:", googleGroup.uris);
+
+const googleTabs = await chrome.tabs.query({
+  url: googleGroup.uris
 });
 
-const jsTabs = await chrome.tabs.query({
-  url: [
+const jsGroup = createGroup("JavaScript");
+jsGroup.addUris(
     'https://developer.mozilla.org/en-US/docs/Web/JavaScript*',
     'https://www.w3schools.com/js*',
     'https://developer.mozilla.org/en-US/docs/Learn/JavaScript*'
-  ]
+  )
+
+console.log("jsGroup.uris:", jsGroup.uris);
+
+const jsTabs = await chrome.tabs.query({
+  url: jsGroup.uris
 });
 
+
+//TODO: null check all of this
 // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/Collator
 const collator = new Intl.Collator();
 googleTabs.sort((a, b) => collator.compare(a.title, b.title));
@@ -72,4 +87,3 @@ button.addEventListener('click', async () => {
     await chrome.tabGroups.update(group, { title: 'JS Docs' });
   }
 });
-
