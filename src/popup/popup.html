@@ -7,20 +7,27 @@
     <link rel="stylesheet" href="./popup.css" />
   </head>
   <body>
-    <template id="li_template">
+    <template id="tabli_template">
       <li>
         <a>
-          <h3 class="title">Tab Title</h3>
+          <h3 class="tab_title">Tab Title</h3>
           <p class="pathname">Tab Pathname</p>
         </a>
       </li>
     </template>
 
-    <h1>Google Dev Docs</h1>
-    <ul id = "google-doc-list"></ul>
-    <h1>JavaScript Dev Docs</h1>
-    <ul id = "js-doc-list"></ul>
-    <button>Group Tabs</button>
+    <template id="groupli_template">
+      <li>
+        <h1 class="title">Group Title</h3>
+        <ul class = "tab-list">
+          <!-- Tab items will be inserted here using the tabli_template -->
+        </ul>
+      </li>
+    </template>
+
+    <h1>My Tabs</h1>
+    <ul id = "tab-group-list"></ul>
+    <button id = "group-button">Group Tabs</button>
 
     <script type="module" src="./popup.js"></script>
   </body>

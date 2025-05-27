@@ -1,8 +1,10 @@
 import tabsModule from "./tabs.js";
 const { tabGroups, addGroup, createGroup } = tabsModule;
+const tabGroupMap = {};
 
-const tabGroupMap = {}
-
+/**
+ * TEMPORARY:
+ */
 const googleGroup = createGroup("Google");
 googleGroup.addUris(
     'https://developer.chrome.com/docs/webstore/*',
@@ -14,8 +16,6 @@ console.log("googleGroup.uris:", googleGroup.uris);
 const googleTabs = await chrome.tabs.query({
   url: googleGroup.uris
 });
-
-tabGroupMap[googleGroup.name] = googleTabs;
 
 const jsGroup = createGroup("JavaScript");
 jsGroup.addUris(
@@ -30,38 +30,43 @@ const jsTabs = await chrome.tabs.query({
   url: jsGroup.uris
 });
 
+tabGroupMap[googleGroup.name] = googleTabs;
 tabGroupMap[jsGroup.name] = jsTabs;
 
-/*
- * Add more groups and tabs as needed.
+/**
+ * Sort the tabs in each group by title.
  */
 const collator = new Intl.Collator();
 Object.values(tabGroupMap).forEach((group) => {
   group.sort((a, b) => collator.compare(a.title, b.title));
 });
 
-const template = document.getElementById('li_template');
-const elements = new Set();
-for (const group of Object.values(tabGroupMap)) {
-  for (const tab of group) {
-    const element = template.content.firstElementChild.cloneNode(true);
+/**
+ * Add each tab to the popup.
+ */
+const template = document.getElementById('groupli_template');
+const tabTemplate = document.getElementById('tabli_template');
 
-    const title = tab.title.split('|')[0].trim();
+for (const [groupName, groupTabs] of Object.entries(tabGroupMap)) {
+  const groupElement = template.content.firstElementChild.cloneNode(true);
+  groupElement.querySelector('.title').textContent = groupName;
+
+  for (const tab of groupTabs) {
+    const element = tabTemplate.content.firstElementChild.cloneNode(true);
+    const tabTitle = tab.title.split('|')[0].trim();
     const pathname = new URL(tab.url).pathname.slice('/docs'.length);
 
-    element.querySelector('.title').textContent = title;
+    element.querySelector('.tab_title').textContent = tabTitle;
     element.querySelector('.pathname').textContent = pathname;
     element.querySelector('a').addEventListener('click', async () => {
-      // need to focus window as well as the active tab
       await chrome.tabs.update(tab.id, { active: true });
       await chrome.windows.update(tab.windowId, { focused: true });
     });
 
-    elements.add(element);
+    groupElement.querySelector('.tab-list').append(element);
   }
 
-  document.getElementById('google-doc-list').append(...elements);
-  elements.clear();
+  document.getElementById('tab-group-list').append(groupElement);
 }
 
 /**
@@ -69,14 +74,13 @@ for (const group of Object.values(tabGroupMap)) {
  */
 const button = document.querySelector('button');
 button.addEventListener('click', async () => {
-  for (const group in tabGroupMap) {
-    const tabs = tabGroupMap[group];
+  for (const [groupName, tabs] of Object.entries(tabGroupMap)) {
     if (tabs.length === 0) {
       continue;
     }
     const tabIds = tabs.map(({ id }) => id);
     console.log(`Grouping tabs: ${tabIds}`);
     const tabGroup = await chrome.tabs.group({ tabIds });
-    await chrome.tabGroups.update(tabGroup, { title: group });
+    await chrome.tabGroups.update(tabGroup, { title: groupName });
   }
 });
