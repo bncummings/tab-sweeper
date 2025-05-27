@@ -38,8 +38,4 @@ function updatePermissions() {
 
 }
 
-function add(x, y) {
-  return x + y;
-}
-
 export default  { tabGroups, createGroup };
