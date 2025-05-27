@@ -19,12 +19,6 @@
   },
 
   "host_permissions": [
-    "https://developer.chrome.com/*",
-    "*://developer.mozilla.org/*",
-    "*://www.w3schools.com/*"
-  ],
-
-  "optional_host_permissions":[
     "https://*/*",
     "http://*/*"
   ],
