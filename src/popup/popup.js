@@ -54,7 +54,7 @@ for (const [groupName, groupTabs] of Object.entries(tabGroupMap)) {
   for (const tab of groupTabs) {
     const element = tabTemplate.content.firstElementChild.cloneNode(true);
     const tabTitle = tab.title.split('|')[0].trim();
-    const pathname = new URL(tab.url).pathname.slice('/docs'.length);
+    const pathname = new URL(tab.url).pathname
 
     element.querySelector('.tab_title').textContent = tabTitle;
     element.querySelector('.pathname').textContent = pathname;
