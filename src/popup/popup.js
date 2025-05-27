@@ -1,6 +1,8 @@
 import tabsModule from "./tabs.js";
 const { tabGroups, addGroup, createGroup } = tabsModule;
 
+const tabGroupMap = {}
+
 const googleGroup = createGroup("Google");
 googleGroup.addUris(
     'https://developer.chrome.com/docs/webstore/*',
@@ -12,6 +14,8 @@ console.log("googleGroup.uris:", googleGroup.uris);
 const googleTabs = await chrome.tabs.query({
   url: googleGroup.uris
 });
+
+tabGroupMap[googleGroup.name] = googleTabs;
 
 const jsGroup = createGroup("JavaScript");
 jsGroup.addUris(
@@ -26,64 +30,53 @@ const jsTabs = await chrome.tabs.query({
   url: jsGroup.uris
 });
 
+tabGroupMap[jsGroup.name] = jsTabs;
 
-//TODO: null check all of this
-// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/Collator
+/*
+ * Add more groups and tabs as needed.
+ */
 const collator = new Intl.Collator();
-googleTabs.sort((a, b) => collator.compare(a.title, b.title));
-jsTabs.sort((a, b) => collator.compare(a.title, b.title));
+Object.values(tabGroupMap).forEach((group) => {
+  group.sort((a, b) => collator.compare(a.title, b.title));
+});
 
 const template = document.getElementById('li_template');
 const elements = new Set();
-for (const tab of googleTabs) {
-  const element = template.content.firstElementChild.cloneNode(true);
+for (const group of Object.values(tabGroupMap)) {
+  for (const tab of group) {
+    const element = template.content.firstElementChild.cloneNode(true);
 
-  const title = tab.title.split('|')[0].trim();
-  const pathname = new URL(tab.url).pathname.slice('/docs'.length);
+    const title = tab.title.split('|')[0].trim();
+    const pathname = new URL(tab.url).pathname.slice('/docs'.length);
 
-  element.querySelector('.title').textContent = title;
-  element.querySelector('.pathname').textContent = pathname;
-  element.querySelector('a').addEventListener('click', async () => {
-    // need to focus window as well as the active tab
-    await chrome.tabs.update(tab.id, { active: true });
-    await chrome.windows.update(tab.windowId, { focused: true });
-  });
+    element.querySelector('.title').textContent = title;
+    element.querySelector('.pathname').textContent = pathname;
+    element.querySelector('a').addEventListener('click', async () => {
+      // need to focus window as well as the active tab
+      await chrome.tabs.update(tab.id, { active: true });
+      await chrome.windows.update(tab.windowId, { focused: true });
+    });
 
-  elements.add(element);
+    elements.add(element);
+  }
+
+  document.getElementById('google-doc-list').append(...elements);
+  elements.clear();
 }
-document.getElementById('google-doc-list').append(...elements);
 
-elements.clear();
-for (const tab of jsTabs) {
-  const element = template.content.firstElementChild.cloneNode(true);
-
-  const title = tab.title.split('|')[0].trim();
-  const pathname = new URL(tab.url).pathname.slice('/docs'.length);
-
-  element.querySelector('.title').textContent = title;
-  element.querySelector('.pathname').textContent = pathname;
-  element.querySelector('a').addEventListener('click', async () => {
-    // need to focus window as well as the active tab
-    await chrome.tabs.update(tab.id, { active: true });
-    await chrome.windows.update(tab.windowId, { focused: true });
-  });
-
-  elements.add(element);
-}
-document.getElementById('js-doc-list').append(...elements);
-
+/**
+ * Click handler to group them tabs.
+ */
 const button = document.querySelector('button');
 button.addEventListener('click', async () => {
-  let tabIds = googleTabs.map(({ id }) => id);
-  if (tabIds.length) {
-    console.log(tabIds);
-    const group = await chrome.tabs.group({ tabIds });
-    await chrome.tabGroups.update(group, { title: 'DOCS' });
-  }
-  tabIds = jsTabs.map(({ id }) => id);
-  if (tabIds.length) {
-    console.log(tabIds);
-    const group = await chrome.tabs.group({ tabIds });
-    await chrome.tabGroups.update(group, { title: 'JS Docs' });
+  for (const group in tabGroupMap) {
+    const tabs = tabGroupMap[group];
+    if (tabs.length === 0) {
+      continue;
+    }
+    const tabIds = tabs.map(({ id }) => id);
+    console.log(`Grouping tabs: ${tabIds}`);
+    const tabGroup = await chrome.tabs.group({ tabIds });
+    await chrome.tabGroups.update(tabGroup, { title: group });
   }
 });
