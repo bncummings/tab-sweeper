@@ -40,7 +40,7 @@ export default {
   },
   plugins: [
     new HtmlWebpackPlugin({
-      template: './src/popup/popup-react.html',
+      template: './src/popup/popup.html',
       filename: 'popup.html',
       chunks: ['popup']
     }),

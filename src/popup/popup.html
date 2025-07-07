@@ -4,60 +4,9 @@
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="stylesheet" href="./popup.css" />
+    <title>Tab Manager for Dev Docs</title>
   </head>
   <body>
-    <template id="tabli_template">
-      <li>
-        <a>
-          <h3 class="tab_title">Tab Title</h3>
-          <p class="pathname">Tab Pathname</p>
-        </a>
-      </li>
-    </template>
-
-    <template id="groupli_template">
-      <li>
-        <h1 class="title">Group Title</h3>
-        <ul class = "tab-list">
-          <!-- Tab items will be inserted here using the tabli_template -->
-        </ul>
-      </li>
-    </template>
-
-    <h1>~My Tabs~</h1>
-    <ul id = "tab-group-list"></ul>
-    <button id = "group-button">Group Tabs</button>
-
-    <script type="module" src="./popup.js"></script>
-
-    <!-- <form action="" method="get" class="add-group-form">
-      <label for="group-name">Group Name: </label>
-      <input type="text" name="group-name" id="group-name" required />
-
-      <div id="uri-field">
-        <label for="uri">Uri: </label>
-        <input type="text" name="uri" id="uri" required />
-      </div>
-
-      <div class="button">
-        <button class="add-more">Add another URL template...</button>
-      </div>
-
-      <div class="button">
-        <input type="submit" value="ok" />
-      </div>
-      
-    </form> -->
-    
-    <form action="." method="GET">
-       <label for="text">Text: </label>
-        <div class="inputs">
-            <input type="text" name="text[]">
-        </div>
-        
-        <input type="submit" value="submit">
-    </form>
-    <button class="add-input">Add one more input</button>
+    <div id="root"></div>
   </body>
 </html>

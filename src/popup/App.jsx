@@ -7,10 +7,19 @@ const { createGroup } = tabsModule;
 const App = () => {
   const [tabGroups, setTabGroups] = useState({});
   const [isGrouping, setIsGrouping] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     const initializeTabGroups = async () => {
       try {
+        console.log('Initializing tab groups...');
+        
+        // Check if Chrome APIs are available
+        if (!chrome || !chrome.tabs) {
+          throw new Error('Chrome APIs not available');
+        }
+
         // Create Google group
         const googleGroup = createGroup("Google");
         googleGroup.addUris(
@@ -32,6 +41,9 @@ const App = () => {
           chrome.tabs.query({ url: jsGroup.uris })
         ]);
 
+        console.log('Google tabs:', googleTabs);
+        console.log('JS tabs:', jsTabs);
+
         // Sort tabs by title
         const collator = new Intl.Collator();
         const sortTabs = (tabs) => tabs.sort((a, b) => collator.compare(a.title, b.title));
@@ -42,8 +54,17 @@ const App = () => {
         };
 
         setTabGroups(groups);
+        setIsLoading(false);
       } catch (error) {
         console.error('Error initializing tab groups:', error);
+        setError(error.message);
+        setIsLoading(false);
+        
+        // Set some mock data for testing
+        setTabGroups({
+          'Google': [],
+          'JavaScript': []
+        });
       }
     };
 
@@ -78,14 +99,107 @@ const App = () => {
     }
   };
 
+  const appStyle = {
+    height: '100%',
+    display: 'flex',
+    flexDirection: 'column',
+    width: '420px',
+    minHeight: '550px',
+    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif',
+    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+    color: '#333'
+  };
+
+  const headerStyle = {
+    background: 'rgba(255, 255, 255, 0.15)',
+    backdropFilter: 'blur(15px)',
+    padding: '24px',
+    textAlign: 'center',
+    borderBottom: '1px solid rgba(255, 255, 255, 0.25)'
+  };
+
+  const headerTitleStyle = {
+    margin: 0,
+    color: 'white',
+    fontSize: '28px',
+    fontWeight: '300',
+    textShadow: '0 3px 6px rgba(0, 0, 0, 0.4)',
+    letterSpacing: '2px'
+  };
+
+  const mainStyle = {
+    flex: 1,
+    padding: '24px',
+    overflowY: 'auto'
+  };
+
+  const tabGroupsContainerStyle = {
+    marginBottom: '24px'
+  };
+
+  const actionsStyle = {
+    display: 'flex',
+    justifyContent: 'center',
+    padding: '20px 0'
+  };
+
+  const groupButtonStyle = {
+    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+    color: 'white',
+    border: 'none',
+    borderRadius: '30px',
+    padding: '14px 40px',
+    fontSize: '18px',
+    fontWeight: '700',
+    cursor: 'pointer',
+    transition: 'all 0.2s ease',
+    boxShadow: '0 6px 16px rgba(102, 126, 234, 0.5)',
+    minWidth: '140px',
+    textTransform: 'uppercase',
+    letterSpacing: '1px'
+  };
+
+  console.log('Rendering App component, tabGroups:', tabGroups, 'isLoading:', isLoading, 'error:', error);
+
+  if (isLoading) {
+    return (
+      <div style={appStyle}>
+        <header style={headerStyle}>
+          <h1 style={headerTitleStyle}>~My Tabs~</h1>
+        </header>
+        <main style={mainStyle}>
+          <div style={{textAlign: 'center', padding: '40px', color: 'white'}}>
+            Loading tabs...
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div style={appStyle}>
+        <header style={headerStyle}>
+          <h1 style={headerTitleStyle}>~My Tabs~</h1>
+        </header>
+        <main style={mainStyle}>
+          <div style={{textAlign: 'center', padding: '40px', color: 'white'}}>
+            <p>Error: {error}</p>
+            <p>Extension is running in development mode.</p>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
   return (
-    <div className="app">
-      <header className="app-header">
-        <h1>~My Tabs~</h1>
+    <div style={appStyle}>
+      <header style={headerStyle}>
+        <h1 style={headerTitleStyle}>~My Tabs~</h1>
       </header>
       
-      <main className="app-main">
-        <div className="tab-groups-container">
+      <main style={mainStyle}>
+        <div style={tabGroupsContainerStyle}>
           {Object.entries(tabGroups).map(([groupName, tabs]) => (
             <TabGroup
               key={groupName}
@@ -96,11 +210,23 @@ const App = () => {
           ))}
         </div>
         
-        <div className="actions">
+        <div style={actionsStyle}>
           <button
-            className="group-button"
+            style={groupButtonStyle}
             onClick={handleGroupTabs}
             disabled={isGrouping}
+            onMouseEnter={(e) => {
+              if (!isGrouping) {
+                e.currentTarget.style.transform = 'translateY(-3px)';
+                e.currentTarget.style.boxShadow = '0 10px 25px rgba(102, 126, 234, 0.7)';
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (!isGrouping) {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = '0 6px 16px rgba(102, 126, 234, 0.5)';
+              }
+            }}
           >
             {isGrouping ? 'Grouping...' : 'Group Tabs'}
           </button>

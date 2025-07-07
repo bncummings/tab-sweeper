@@ -34,17 +34,3 @@ To run the test suite:
 ```bash
 npm test
 ```
-
-## Supported Sites
-
-The extension automatically detects and groups tabs from:
-- **Google Chrome**: developer.chrome.com (Web Store & Extensions docs)
-- **JavaScript**: developer.mozilla.org, w3schools.com/js
-
-## Features
-
-- ✨ Beautiful React-based UI
-- 🎯 Automatic tab detection and grouping
-- 🚀 One-click tab organization
-- 📱 Modern responsive design
-- 🔍 Easy tab navigation
