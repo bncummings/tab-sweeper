@@ -75,8 +75,8 @@ describe('TabGroup', () => {
       />
     );
     
-    expect(screen.getByText('Edit')).toBeInTheDocument();
-    expect(screen.getByText('Delete')).toBeInTheDocument();
+    expect(screen.getByTitle('Edit group')).toBeInTheDocument();
+    expect(screen.getByTitle('Delete group')).toBeInTheDocument();
   });
 
   test('does not show edit and delete buttons for default groups', () => {
@@ -91,8 +91,8 @@ describe('TabGroup', () => {
       />
     );
     
-    expect(screen.queryByText('Edit')).not.toBeInTheDocument();
-    expect(screen.queryByText('Delete')).not.toBeInTheDocument();
+    expect(screen.queryByTitle('Edit group')).not.toBeInTheDocument();
+    expect(screen.queryByTitle('Delete group')).not.toBeInTheDocument();
   });
 
   test('calls onEditGroup when edit button is clicked', () => {
@@ -107,7 +107,7 @@ describe('TabGroup', () => {
       />
     );
     
-    fireEvent.click(screen.getByText('Edit'));
+    fireEvent.click(screen.getByTitle('Edit group'));
     expect(mockOnEditGroup).toHaveBeenCalledWith('Custom Group');
   });
 
@@ -125,7 +125,7 @@ describe('TabGroup', () => {
       />
     );
     
-    fireEvent.click(screen.getByText('Delete'));
+    fireEvent.click(screen.getByTitle('Delete group'));
     expect(window.confirm).toHaveBeenCalledWith('Are you sure you want to delete the "Custom Group" group?');
     expect(mockOnDeleteGroup).toHaveBeenCalledWith('Custom Group');
   });
@@ -144,7 +144,7 @@ describe('TabGroup', () => {
       />
     );
     
-    fireEvent.click(screen.getByText('Delete'));
+    fireEvent.click(screen.getByTitle('Delete group'));
     expect(window.confirm).toHaveBeenCalledWith('Are you sure you want to delete the "Custom Group" group?');
     expect(mockOnDeleteGroup).not.toHaveBeenCalled();
   });

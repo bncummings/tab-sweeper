@@ -171,4 +171,84 @@ describe('App', () => {
       expect(screen.getByText('JavaScript')).toBeInTheDocument();
     }, { timeout: 2000 });
   });
+
+  test('ignores invalid URLs when creating groups', async () => {
+    const mockCustomGroups = [
+      {
+        name: 'Mixed Valid/Invalid',
+        matchers: [
+          { value: 'https://valid.com/', type: 'prefix' },
+          { value: 'invalid-url', type: 'prefix' },
+          { value: '^https://.*\\.github\\.io/.*', type: 'regex' }
+        ]
+      }
+    ];
+    
+    global.chrome.storage.local.get.mockResolvedValue({
+      customGroups: mockCustomGroups
+    });
+    
+    global.chrome.tabs.query.mockResolvedValue([
+      {
+        id: 1,
+        title: 'Valid Site',
+        url: 'https://valid.com/page',
+        favIconUrl: 'https://valid.com/favicon.ico'
+      },
+      {
+        id: 2,
+        title: 'GitHub Page',
+        url: 'https://user.github.io/repo',
+        favIconUrl: 'https://github.com/favicon.ico'
+      }
+    ]);
+    
+    await act(async () => {
+      render(<App />);
+    });
+    
+    await waitFor(() => {
+      expect(screen.getByText('Mixed Valid/Invalid')).toBeInTheDocument();
+      expect(screen.getByText('Valid Site')).toBeInTheDocument();
+      expect(screen.getByText('GitHub Page')).toBeInTheDocument();
+    });
+  });
+
+  test('creates regex-based tab groups', async () => {
+    // Mock chrome.storage.local.get to return a regex group
+    chrome.storage.local.get.mockResolvedValue({
+      customGroups: [
+        { 
+          name: 'GitHub Pages', 
+          matchers: [{ value: '^https://.*\\.github\\.io/.*', type: 'regex' }]
+        }
+      ]
+    });
+    
+    // Mock chrome.tabs.query to return some tabs
+    chrome.tabs.query.mockResolvedValue([
+      {
+        id: 1,
+        title: 'My GitHub Page',
+        url: 'https://username.github.io/repo-name',
+        favIconUrl: 'https://github.com/favicon.ico'
+      },
+      {
+        id: 2,
+        title: 'Another Site',
+        url: 'https://example.com',
+        favIconUrl: 'https://example.com/favicon.ico'
+      }
+    ]);
+    
+    render(<App />);
+    
+    await waitFor(() => {
+      expect(screen.getByText('GitHub Pages')).toBeInTheDocument();
+      expect(screen.getByText('My GitHub Page')).toBeInTheDocument();
+    });
+    
+    // The non-matching tab should not be in the group
+    expect(screen.queryByText('Another Site')).not.toBeInTheDocument();
+  });
 });

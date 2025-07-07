@@ -2,10 +2,6 @@ import React from 'react';
 import TabItem from './TabItem';
 
 const TabGroup = ({ title, tabs, onTabClick, isCustomGroup, onEditGroup, onDeleteGroup }) => {
-  if (tabs.length === 0) {
-    return null;
-  }
-
   const tabGroupStyle = {
     marginBottom: '24px',
     background: '#ffffff',
@@ -141,13 +137,24 @@ const TabGroup = ({ title, tabs, onTabClick, isCustomGroup, onEditGroup, onDelet
         <h2 style={groupTitleStyle}>{title}</h2>
       )}
       <div style={tabListStyle}>
-        {tabs.map((tab) => (
-          <TabItem
-            key={tab.id}
-            tab={tab}
-            onClick={() => onTabClick(tab)}
-          />
-        ))}
+        {tabs.length > 0 ? (
+          tabs.map((tab) => (
+            <TabItem
+              key={tab.id}
+              tab={tab}
+              onClick={() => onTabClick(tab)}
+            />
+          ))
+        ) : (
+          <div style={{
+            textAlign: 'center',
+            padding: '20px',
+            color: '#718096',
+            fontStyle: 'italic'
+          }}>
+            No tabs found matching this group
+          </div>
+        )}
       </div>
     </div>
   );
