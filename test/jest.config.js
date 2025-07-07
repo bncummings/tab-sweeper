@@ -1,17 +1,27 @@
-module.exports = {
-  setupFiles: ['./mock-extension-apis.js'],
+export default {
+  rootDir: '../',
+  setupFiles: ['<rootDir>/test/mock-extension-apis.js'],
   setupFilesAfterEnv: ['<rootDir>/test/setupTests.js'],
   testEnvironment: 'jsdom',
   transform: {
     '^.+\\.(js|jsx)$': 'babel-jest',
     '^.+\\.css$': 'jest-transform-stub'
   },
-  extensionsToTreatAsEsm: ['.js'],
-  moduleNameMapping: {
+  moduleNameMapper: {
     '\\.(css|less|scss|sass)$': 'identity-obj-proxy'
   },
   testMatch: [
     '<rootDir>/test/**/*.test.js',
     '<rootDir>/test/**/*.test.jsx'
+  ],
+  moduleFileExtensions: ['js', 'jsx'],
+  collectCoverageFrom: [
+    'src/**/*.{js,jsx}',
+    '!src/**/*.test.{js,jsx}',
+    '!src/**/index.js'
+  ],
+  testPathIgnorePatterns: [
+    '/node_modules/',
+    '/dist/'
   ]
 };

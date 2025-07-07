@@ -1,6 +1,5 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
-import { jest } from '@jest/globals';
+import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import TabItem from '../../src/popup/components/TabItem';
 
@@ -29,5 +28,27 @@ describe('TabItem', () => {
     const favicon = screen.getByAltText('favicon');
     expect(favicon).toBeInTheDocument();
     expect(favicon).toHaveAttribute('src', 'https://developer.mozilla.org/favicon.ico');
+  });
+
+  test('calls onClick when clicked', () => {
+    const mockClick = jest.fn();
+    
+    render(<TabItem tab={mockTab} onClick={mockClick} />);
+    
+    // Find the clickable div container
+    const tabItem = screen.getByText('React Documentation').closest('div');
+    fireEvent.click(tabItem);
+    
+    expect(mockClick).toHaveBeenCalledTimes(1);
+  });
+
+  test('does not display favicon when favIconUrl is not provided', () => {
+    const mockClick = jest.fn();
+    const tabWithoutFavicon = { ...mockTab, favIconUrl: undefined };
+    
+    render(<TabItem tab={tabWithoutFavicon} onClick={mockClick} />);
+    
+    const favicon = screen.queryByAltText('favicon');
+    expect(favicon).not.toBeInTheDocument();
   });
 });

@@ -1,16 +1,15 @@
-const { jest } = require('@jest/globals');
-
+// Mock Chrome extension APIs for testing
 global.chrome = {
   tabs: {
-    query: jest.fn(),
-    update: jest.fn(),
-    group: jest.fn()
+    query: jest.fn().mockResolvedValue([]),
+    update: jest.fn().mockResolvedValue({}),
+    group: jest.fn().mockResolvedValue(1)
   },
   windows: {
-    update: jest.fn()
+    update: jest.fn().mockResolvedValue({})
   },
   tabGroups: {
-    update: jest.fn()
+    update: jest.fn().mockResolvedValue({})
   },
   storage: {
     local: {
