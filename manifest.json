@@ -2,19 +2,21 @@
   "manifest_version": 3,
   "name": "Tab Manager for Dev Docs",
   "version": "1.0",
+  "description": "A beautiful Chrome extension for organizing and grouping documentation tabs",
   "icons": {
-    "16": "src/images/icon-16.png",
-    "32": "src/images/icon-32.png",
-    "48": "src/images/icon-48.png",
-    "128": "src/images/icon-128.png"
+    "16": "images/icon-16.png",
+    "32": "images/icon-32.png",
+    "48": "images/icon-48.png",
+    "128": "images/icon-128.png"
   },
 
   "action": {
-    "default_popup": "src/popup/popup.html"
+    "default_popup": "popup.html",
+    "default_title": "Tab Manager for Dev Docs"
   },
 
   "background": {
-    "service_worker": "src/popup/tabs.js",
+    "service_worker": "background.js",
     "type": "module"
   },
 
@@ -24,6 +26,7 @@
   ],
   
   "permissions": [
-    "tabGroups"
+    "tabGroups",
+    "tabs"
   ]
 }

@@ -25,10 +25,39 @@
       </li>
     </template>
 
-    <h1>My Tabs</h1>
+    <h1>~My Tabs~</h1>
     <ul id = "tab-group-list"></ul>
     <button id = "group-button">Group Tabs</button>
 
     <script type="module" src="./popup.js"></script>
+
+    <!-- <form action="" method="get" class="add-group-form">
+      <label for="group-name">Group Name: </label>
+      <input type="text" name="group-name" id="group-name" required />
+
+      <div id="uri-field">
+        <label for="uri">Uri: </label>
+        <input type="text" name="uri" id="uri" required />
+      </div>
+
+      <div class="button">
+        <button class="add-more">Add another URL template...</button>
+      </div>
+
+      <div class="button">
+        <input type="submit" value="ok" />
+      </div>
+      
+    </form> -->
+    
+    <form action="." method="GET">
+       <label for="text">Text: </label>
+        <div class="inputs">
+            <input type="text" name="text[]">
+        </div>
+        
+        <input type="submit" value="submit">
+    </form>
+    <button class="add-input">Add one more input</button>
   </body>
 </html>

@@ -84,3 +84,33 @@ button.addEventListener('click', async () => {
     await chrome.tabGroups.update(tabGroup, { title: groupName });
   }
 });
+
+/**
+ * 
+ */
+// const addMore = document.querySelector(".add-more");
+// let fInput = document.getElementById("uri-field"); //null
+// console.log("fInput:", fInput);
+// console.log("addmore:", addMore);
+
+// addMore.addEventListener("click", function (e) {
+//     e.preventDefault();
+//     let newFInput = fInput.cloneNode();
+//     fInput.parentNode.insertBefore(newFInput, fInput.nextSibling);
+//     fInput = newFInput;
+//   });
+
+    const addButton = document.querySelector('button.add-input')
+
+    const inputDiv = document.querySelector('form .inputs')
+
+    addButton.addEventListener('click', ()=>{ // button to add the inputs
+        let newInput = document.createElement('input')
+        newInput.name = 'text[]' // add the name of the input
+        newInput.type = 'text' // add the type of the input
+
+        // you can add other attributes before appeding the node into the html
+
+        inputDiv.appendChild(newInput)
+    })
+

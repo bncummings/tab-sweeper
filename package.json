@@ -1,9 +1,37 @@
 {
+  "name": "documentation-tab-grouper",
+  "version": "1.0.0",
+  "description": "A Chrome extension for grouping documentation tabs",
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
   "devDependencies": {
-    "jest": "^29.7.0"
+    "@babel/core": "^7.22.0",
+    "@babel/preset-env": "^7.22.0",
+    "@babel/preset-react": "^7.22.0",
+    "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/react": "^16.3.0",
+    "@testing-library/user-event": "^14.6.1",
+    "babel-jest": "^30.0.4",
+    "babel-loader": "^9.1.0",
+    "copy-webpack-plugin": "^11.0.0",
+    "css-loader": "^6.8.0",
+    "html-webpack-plugin": "^5.5.0",
+    "identity-obj-proxy": "^3.0.0",
+    "jest": "^29.7.0",
+    "jest-environment-jsdom": "^30.0.4",
+    "jest-transform-stub": "^2.0.0",
+    "style-loader": "^3.3.0",
+    "webpack": "^5.88.0",
+    "webpack-cli": "^5.1.0"
   },
   "scripts": {
-    "test": "node  --trace-warnings --experimental-vm-modules node_modules/.bin/jest"
+    "build": "webpack --mode=production",
+    "dev": "webpack --mode=development --watch",
+    "test": "node --trace-warnings --experimental-vm-modules node_modules/.bin/jest",
+    "test:watch": "npm run test -- --watch",
+    "clean": "rm -rf dist"
   },
   "type": "module"
 }

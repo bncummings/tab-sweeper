@@ -17,7 +17,7 @@ test('can add uris to a tab group', () => {
     testGroup.addUris(...testUris);
     expect(testGroup.uris.length).toBe(2);
     expect(testGroup.uris).toEqual(expect.arrayContaining(testUris));
-})
+});
 
 test('can add uris to a tab group', () => {
     const testUris = [
@@ -28,7 +28,7 @@ test('can add uris to a tab group', () => {
     testGroup.addUris(...testUris);
     expect(testGroup.uris.length).toBe(2);
     expect(testGroup.uris).toEqual(expect.arrayContaining(testUris));
-})
+});
 
 
 test('empty test that always passes', () => {
