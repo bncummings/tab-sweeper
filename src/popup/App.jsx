@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import TabGroup from './components/TabGroup';
+import CreateTabGroupModal from './components/CreateTabGroupModal';
 import tabsModule from './tabs.js';
 
 const { createGroup } = tabsModule;
@@ -9,6 +10,8 @@ const App = () => {
   const [isGrouping, setIsGrouping] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [customGroups, setCustomGroups] = useState([]);
 
   useEffect(() => {
     const initializeTabGroups = async () => {
@@ -20,14 +23,18 @@ const App = () => {
           throw new Error('Chrome APIs not available');
         }
 
-        // Create Google group
+        // Load custom groups from storage
+        const storedGroups = await chrome.storage.local.get('customGroups');
+        const savedCustomGroups = storedGroups.customGroups || [];
+        setCustomGroups(savedCustomGroups);
+
+        // Create default groups
         const googleGroup = createGroup("Google");
         googleGroup.addUris(
           'https://developer.chrome.com/docs/webstore/*',
           'https://developer.chrome.com/docs/extensions/*'
         );
 
-        // Create JavaScript group
         const jsGroup = createGroup("JavaScript");
         jsGroup.addUris(
           'https://developer.mozilla.org/en-US/docs/Web/JavaScript*',
@@ -35,23 +42,31 @@ const App = () => {
           'https://developer.mozilla.org/en-US/docs/Learn/JavaScript*'
         );
 
-        // Query tabs
-        const [googleTabs, jsTabs] = await Promise.all([
-          chrome.tabs.query({ url: googleGroup.uris }),
-          chrome.tabs.query({ url: jsGroup.uris })
-        ]);
+        // Create custom groups
+        const customGroupObjects = savedCustomGroups.map(customGroup => {
+          const group = createGroup(customGroup.name);
+          group.addUris(customGroup.urlPrefix + '*');
+          return group;
+        });
 
-        console.log('Google tabs:', googleTabs);
-        console.log('JS tabs:', jsTabs);
+        // Query tabs for all groups
+        const allGroups = [googleGroup, jsGroup, ...customGroupObjects];
+        const tabQueries = allGroups.map(group => 
+          chrome.tabs.query({ url: group.uris })
+        );
+        
+        const allTabResults = await Promise.all(tabQueries);
+
+        console.log('Tab results:', allTabResults);
 
         // Sort tabs by title
         const collator = new Intl.Collator();
         const sortTabs = (tabs) => tabs.sort((a, b) => collator.compare(a.title, b.title));
 
-        const groups = {
-          [googleGroup.name]: sortTabs(googleTabs),
-          [jsGroup.name]: sortTabs(jsTabs)
-        };
+        const groups = {};
+        allGroups.forEach((group, index) => {
+          groups[group.name] = sortTabs(allTabResults[index]);
+        });
 
         setTabGroups(groups);
         setIsLoading(false);
@@ -99,6 +114,36 @@ const App = () => {
     }
   };
 
+  const handleCreateCustomGroup = async (groupName, urlPrefix) => {
+    try {
+      const newCustomGroup = { name: groupName, urlPrefix };
+      const updatedCustomGroups = [...customGroups, newCustomGroup];
+      
+      // Save to storage
+      await chrome.storage.local.set({ customGroups: updatedCustomGroups });
+      setCustomGroups(updatedCustomGroups);
+      
+      // Create the group and query tabs
+      const group = createGroup(groupName);
+      group.addUris(urlPrefix + '*');
+      
+      const tabs = await chrome.tabs.query({ url: group.uris });
+      const collator = new Intl.Collator();
+      const sortedTabs = tabs.sort((a, b) => collator.compare(a.title, b.title));
+      
+      // Update tab groups
+      setTabGroups(prev => ({
+        ...prev,
+        [groupName]: sortedTabs
+      }));
+      
+      console.log(`Created custom group "${groupName}" with ${tabs.length} tabs`);
+    } catch (error) {
+      console.error('Error creating custom group:', error);
+      throw error;
+    }
+  };
+
   const appStyle = {
     height: '100%',
     display: 'flex',
@@ -115,7 +160,8 @@ const App = () => {
     backdropFilter: 'blur(15px)',
     padding: '24px',
     textAlign: 'center',
-    borderBottom: '1px solid rgba(255, 255, 255, 0.25)'
+    borderBottom: '1px solid rgba(255, 255, 255, 0.25)',
+    position: 'relative'
   };
 
   const headerTitleStyle = {
@@ -125,6 +171,27 @@ const App = () => {
     fontWeight: '300',
     textShadow: '0 3px 6px rgba(0, 0, 0, 0.4)',
     letterSpacing: '2px'
+  };
+
+  const plusButtonStyle = {
+    position: 'absolute',
+    right: '20px',
+    top: '50%',
+    transform: 'translateY(-50%)',
+    width: '40px',
+    height: '40px',
+    borderRadius: '50%',
+    background: 'rgba(255, 255, 255, 0.2)',
+    border: '2px solid rgba(255, 255, 255, 0.3)',
+    color: 'white',
+    fontSize: '24px',
+    fontWeight: '300',
+    cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    transition: 'all 0.2s ease',
+    backdropFilter: 'blur(10px)'
   };
 
   const mainStyle = {
@@ -196,6 +263,23 @@ const App = () => {
     <div style={appStyle}>
       <header style={headerStyle}>
         <h1 style={headerTitleStyle}>~My Tabs~</h1>
+        <button
+          style={plusButtonStyle}
+          onClick={() => setIsModalOpen(true)}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = 'rgba(255, 255, 255, 0.3)';
+            e.currentTarget.style.transform = 'translateY(-50%) scale(1.1)';
+            e.currentTarget.style.boxShadow = '0 5px 15px rgba(255, 255, 255, 0.3)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = 'rgba(255, 255, 255, 0.2)';
+            e.currentTarget.style.transform = 'translateY(-50%) scale(1)';
+            e.currentTarget.style.boxShadow = 'none';
+          }}
+          title="Create new tab group"
+        >
+          +
+        </button>
       </header>
       
       <main style={mainStyle}>
@@ -232,6 +316,12 @@ const App = () => {
           </button>
         </div>
       </main>
+
+      <CreateTabGroupModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onCreateGroup={handleCreateCustomGroup}
+      />
     </div>
   );
 };
