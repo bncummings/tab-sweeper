@@ -1,26 +1,44 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
-const CreateTabGroupModal = ({ isOpen, onClose, onCreateGroup }) => {
+const CreateTabGroupModal = ({ isOpen, onClose, onCreateGroup, editingGroup }) => {
   const [groupName, setGroupName] = useState('');
-  const [urlPrefix, setUrlPrefix] = useState('');
+  const [urlPrefixes, setUrlPrefixes] = useState(['']);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (editingGroup) {
+      setGroupName(editingGroup.name);
+      // Support both old single urlPrefix and new multiple urlPrefixes
+      const prefixes = editingGroup.urlPrefixes || [editingGroup.urlPrefix];
+      setUrlPrefixes(prefixes.length > 0 ? prefixes : ['']);
+    } else {
+      setGroupName('');
+      setUrlPrefixes(['']);
+    }
+  }, [editingGroup, isOpen]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!groupName.trim() || !urlPrefix.trim()) {
-      alert('Please fill in both fields');
+    const validPrefixes = urlPrefixes.filter(prefix => prefix.trim());
+    
+    if (!groupName.trim() || validPrefixes.length === 0) {
+      alert('Please provide a group name and at least one URL prefix');
       return;
     }
 
     setIsSubmitting(true);
     try {
-      await onCreateGroup(groupName.trim(), urlPrefix.trim());
+      if (editingGroup) {
+        await onCreateGroup(editingGroup.name, groupName.trim(), validPrefixes.map(p => p.trim()));
+      } else {
+        await onCreateGroup(groupName.trim(), validPrefixes.map(p => p.trim()));
+      }
       setGroupName('');
-      setUrlPrefix('');
+      setUrlPrefixes(['']);
       onClose();
     } catch (error) {
-      console.error('Error creating group:', error);
-      alert('Error creating group: ' + error.message);
+      console.error('Error creating/updating group:', error);
+      alert('Error creating/updating group: ' + error.message);
     } finally {
       setIsSubmitting(false);
     }
@@ -28,8 +46,24 @@ const CreateTabGroupModal = ({ isOpen, onClose, onCreateGroup }) => {
 
   const handleClose = () => {
     setGroupName('');
-    setUrlPrefix('');
+    setUrlPrefixes(['']);
     onClose();
+  };
+
+  const addUrlPrefix = () => {
+    setUrlPrefixes([...urlPrefixes, '']);
+  };
+
+  const removeUrlPrefix = (index) => {
+    if (urlPrefixes.length > 1) {
+      setUrlPrefixes(urlPrefixes.filter((_, i) => i !== index));
+    }
+  };
+
+  const updateUrlPrefix = (index, value) => {
+    const newPrefixes = [...urlPrefixes];
+    newPrefixes[index] = value;
+    setUrlPrefixes(newPrefixes);
   };
 
   if (!isOpen) return null;
@@ -135,6 +169,43 @@ const CreateTabGroupModal = ({ isOpen, onClose, onCreateGroup }) => {
     borderRadius: '4px'
   };
 
+  const urlPrefixRowStyle = {
+    display: 'flex',
+    gap: '8px',
+    alignItems: 'center'
+  };
+
+  const urlPrefixInputStyle = {
+    ...inputStyle,
+    flex: 1
+  };
+
+  const removeButtonStyle = {
+    padding: '8px 12px',
+    borderRadius: '6px',
+    fontSize: '14px',
+    fontWeight: '600',
+    cursor: 'pointer',
+    transition: 'all 0.2s ease',
+    border: 'none',
+    background: '#fed7d7',
+    color: '#c53030',
+    minWidth: 'auto'
+  };
+
+  const addButtonStyle = {
+    padding: '8px 16px',
+    borderRadius: '6px',
+    fontSize: '14px',
+    fontWeight: '600',
+    cursor: 'pointer',
+    transition: 'all 0.2s ease',
+    border: 'none',
+    background: '#c6f6d5',
+    color: '#25543e',
+    marginTop: '8px'
+  };
+
   return (
     <div style={overlayStyle} onClick={handleClose}>
       <div style={modalStyle} onClick={(e) => e.stopPropagation()}>
@@ -153,7 +224,7 @@ const CreateTabGroupModal = ({ isOpen, onClose, onCreateGroup }) => {
           ×
         </button>
         
-        <h2 style={titleStyle}>Create New Tab Group</h2>
+        <h2 style={titleStyle}>{editingGroup ? 'Edit Tab Group' : 'Create New Tab Group'}</h2>
         
         <form style={formStyle} onSubmit={handleSubmit}>
           <div style={fieldStyle}>
@@ -172,18 +243,58 @@ const CreateTabGroupModal = ({ isOpen, onClose, onCreateGroup }) => {
           
           <div style={fieldStyle}>
             <label style={labelStyle}>URL Prefix</label>
-            <input
-              type="text"
-              value={urlPrefix}
-              onChange={(e) => setUrlPrefix(e.target.value)}
-              placeholder="e.g., https://react.dev/"
-              style={inputStyle}
-              onFocus={(e) => e.currentTarget.style.borderColor = '#667eea'}
-              onBlur={(e) => e.currentTarget.style.borderColor = '#e2e8f0'}
+            {urlPrefixes.map((urlPrefix, index) => (
+              <div key={index} style={urlPrefixRowStyle}>
+                <input
+                  type="text"
+                  value={urlPrefix}
+                  onChange={(e) => updateUrlPrefix(index, e.target.value)}
+                  placeholder="e.g., https://react.dev/"
+                  style={urlPrefixInputStyle}
+                  onFocus={(e) => e.currentTarget.style.borderColor = '#667eea'}
+                  onBlur={(e) => e.currentTarget.style.borderColor = '#e2e8f0'}
+                  disabled={isSubmitting}
+                />
+                <button
+                  type="button"
+                  onClick={() => removeUrlPrefix(index)}
+                  style={removeButtonStyle}
+                  disabled={isSubmitting}
+                  onMouseEnter={(e) => {
+                    if (!isSubmitting) {
+                      e.currentTarget.style.background = '#fed7d7';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!isSubmitting) {
+                      e.currentTarget.style.background = '#fff';
+                    }
+                  }}
+                >
+                  Remove
+                </button>
+              </div>
+            ))}
+            <button
+              type="button"
+              onClick={addUrlPrefix}
+              style={addButtonStyle}
               disabled={isSubmitting}
-            />
+              onMouseEnter={(e) => {
+                if (!isSubmitting) {
+                  e.currentTarget.style.background = '#c6f6d5';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!isSubmitting) {
+                  e.currentTarget.style.background = '#fff';
+                }
+              }}
+            >
+              Add URL Prefix
+            </button>
             <small style={{color: '#718096', fontSize: '12px'}}>
-              All tabs starting with this URL will be grouped together
+              All tabs starting with these URLs will be grouped together
             </small>
           </div>
           
@@ -223,7 +334,7 @@ const CreateTabGroupModal = ({ isOpen, onClose, onCreateGroup }) => {
                 }
               }}
             >
-              {isSubmitting ? 'Creating...' : 'Create Group'}
+              {isSubmitting ? (editingGroup ? 'Updating...' : 'Creating...') : (editingGroup ? 'Update Group' : 'Create Group')}
             </button>
           </div>
         </form>

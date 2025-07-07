@@ -12,6 +12,7 @@ const App = () => {
   const [error, setError] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [customGroups, setCustomGroups] = useState([]);
+  const [editingGroup, setEditingGroup] = useState(null);
 
   useEffect(() => {
     const initializeTabGroups = async () => {
@@ -28,30 +29,19 @@ const App = () => {
         const savedCustomGroups = storedGroups.customGroups || [];
         setCustomGroups(savedCustomGroups);
 
-        // Create default groups
-        const googleGroup = createGroup("Google");
-        googleGroup.addUris(
-          'https://developer.chrome.com/docs/webstore/*',
-          'https://developer.chrome.com/docs/extensions/*'
-        );
-
-        const jsGroup = createGroup("JavaScript");
-        jsGroup.addUris(
-          'https://developer.mozilla.org/en-US/docs/Web/JavaScript*',
-          'https://www.w3schools.com/js*',
-          'https://developer.mozilla.org/en-US/docs/Learn/JavaScript*'
-        );
-
         // Create custom groups
         const customGroupObjects = savedCustomGroups.map(customGroup => {
           const group = createGroup(customGroup.name);
-          group.addUris(customGroup.urlPrefix + '*');
+          // Support both old single urlPrefix and new multiple urlPrefixes
+          const prefixes = customGroup.urlPrefixes || [customGroup.urlPrefix];
+          prefixes.forEach(prefix => {
+            group.addUris(prefix + '*');
+          });
           return group;
         });
 
         // Query tabs for all groups
-        const allGroups = [googleGroup, jsGroup, ...customGroupObjects];
-        const tabQueries = allGroups.map(group => 
+        const tabQueries = customGroupObjects.map(group => 
           chrome.tabs.query({ url: group.uris })
         );
         
@@ -64,7 +54,7 @@ const App = () => {
         const sortTabs = (tabs) => tabs.sort((a, b) => collator.compare(a.title, b.title));
 
         const groups = {};
-        allGroups.forEach((group, index) => {
+        customGroupObjects.forEach((group, index) => {
           groups[group.name] = sortTabs(allTabResults[index]);
         });
 
@@ -114,9 +104,9 @@ const App = () => {
     }
   };
 
-  const handleCreateCustomGroup = async (groupName, urlPrefix) => {
+  const handleCreateCustomGroup = async (groupName, urlPrefixes) => {
     try {
-      const newCustomGroup = { name: groupName, urlPrefix };
+      const newCustomGroup = { name: groupName, urlPrefixes };
       const updatedCustomGroups = [...customGroups, newCustomGroup];
       
       // Save to storage
@@ -125,7 +115,9 @@ const App = () => {
       
       // Create the group and query tabs
       const group = createGroup(groupName);
-      group.addUris(urlPrefix + '*');
+      urlPrefixes.forEach(prefix => {
+        group.addUris(prefix + '*');
+      });
       
       const tabs = await chrome.tabs.query({ url: group.uris });
       const collator = new Intl.Collator();
@@ -142,6 +134,79 @@ const App = () => {
       console.error('Error creating custom group:', error);
       throw error;
     }
+  };
+
+  const handleEditGroup = (groupName) => {
+    const group = customGroups.find(g => g.name === groupName);
+    if (group) {
+      setEditingGroup(group);
+      setIsModalOpen(true);
+    }
+  };
+
+  const handleUpdateGroup = async (originalName, newName, urlPrefixes) => {
+    try {
+      const updatedCustomGroups = customGroups.map(group => 
+        group.name === originalName 
+          ? { name: newName, urlPrefixes }
+          : group
+      );
+      
+      // Save to storage
+      await chrome.storage.local.set({ customGroups: updatedCustomGroups });
+      setCustomGroups(updatedCustomGroups);
+      
+      // Remove old group from tab groups if name changed
+      const newTabGroups = { ...tabGroups };
+      if (originalName !== newName) {
+        delete newTabGroups[originalName];
+      }
+      
+      // Create the group and query tabs
+      const group = createGroup(newName);
+      urlPrefixes.forEach(prefix => {
+        group.addUris(prefix + '*');
+      });
+      
+      const tabs = await chrome.tabs.query({ url: group.uris });
+      const collator = new Intl.Collator();
+      const sortedTabs = tabs.sort((a, b) => collator.compare(a.title, b.title));
+      
+      // Update tab groups
+      setTabGroups(prev => ({
+        ...newTabGroups,
+        [newName]: sortedTabs
+      }));
+      
+      console.log(`Updated custom group "${originalName}" to "${newName}" with ${tabs.length} tabs`);
+    } catch (error) {
+      console.error('Error updating custom group:', error);
+      throw error;
+    }
+  };
+
+  const handleDeleteGroup = async (groupName) => {
+    try {
+      const updatedCustomGroups = customGroups.filter(g => g.name !== groupName);
+      
+      // Save to storage
+      await chrome.storage.local.set({ customGroups: updatedCustomGroups });
+      setCustomGroups(updatedCustomGroups);
+      
+      // Remove from tab groups
+      const newTabGroups = { ...tabGroups };
+      delete newTabGroups[groupName];
+      setTabGroups(newTabGroups);
+      
+      console.log(`Deleted custom group "${groupName}"`);
+    } catch (error) {
+      console.error('Error deleting custom group:', error);
+      throw error;
+    }
+  };
+
+  const isCustomGroup = (groupName) => {
+    return customGroups.some(g => g.name === groupName);
   };
 
   const appStyle = {
@@ -290,6 +355,9 @@ const App = () => {
               title={groupName}
               tabs={tabs}
               onTabClick={handleTabClick}
+              isCustomGroup={isCustomGroup(groupName)}
+              onEditGroup={handleEditGroup}
+              onDeleteGroup={handleDeleteGroup}
             />
           ))}
         </div>
@@ -319,8 +387,12 @@ const App = () => {
 
       <CreateTabGroupModal
         isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        onCreateGroup={handleCreateCustomGroup}
+        onClose={() => {
+          setIsModalOpen(false);
+          setEditingGroup(null);
+        }}
+        onCreateGroup={editingGroup ? handleUpdateGroup : handleCreateCustomGroup}
+        editingGroup={editingGroup}
       />
     </div>
   );

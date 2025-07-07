@@ -1,22 +1,8 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
+import { jest } from '@jest/globals';
 import '@testing-library/jest-dom';
 import TabItem from '../../src/popup/components/TabItem';
-
-// Mock chrome API
-global.chrome = {
-  tabs: {
-    query: jest.fn(),
-    update: jest.fn(),
-    group: jest.fn()
-  },
-  windows: {
-    update: jest.fn()
-  },
-  tabGroups: {
-    update: jest.fn()
-  }
-};
 
 const mockTab = {
   id: 1,
