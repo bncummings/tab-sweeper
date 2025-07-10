@@ -41,7 +41,9 @@ describe('App', () => {
   });
 
   test('renders plus button to create new group', async () => {
-    render(<App />);
+    await act(async () => {
+      render(<App />);
+    });
     
     await waitFor(() => {
       expect(screen.getByText('+')).toBeInTheDocument();
@@ -49,21 +51,27 @@ describe('App', () => {
   });
 
   test('renders group tabs button', async () => {
-    render(<App />);
+    await act(async () => {
+      render(<App />);
+    });
     
     await waitFor(() => {
-      expect(screen.getByText('Group Tabs')).toBeInTheDocument();
+      expect(screen.getByText('Group All')).toBeInTheDocument();
     });
   });
 
   test('opens modal when plus button is clicked', async () => {
-    render(<App />);
+    await act(async () => {
+      render(<App />);
+    });
     
     await waitFor(() => {
       expect(screen.getByText('+')).toBeInTheDocument();
     });
     
-    fireEvent.click(screen.getByText('+'));
+    await act(async () => {
+      fireEvent.click(screen.getByText('+'));
+    });
     
     await waitFor(() => {
       expect(screen.getByText('Create New Tab Group')).toBeInTheDocument();
@@ -112,13 +120,28 @@ describe('App', () => {
     });
   });
 
-  test('shows loading state initially', () => {
-    render(<App />);
+  test('shows loading state initially', async () => {
+    // Make the storage call slow to ensure we can see the loading state
+    global.chrome.storage.local.get.mockImplementation(() => 
+      new Promise(resolve => setTimeout(() => resolve({ customGroups: [] }), 100))
+    );
+    
+    await act(async () => {
+      render(<App />);
+    });
     
     expect(screen.getByText('Loading tabs...')).toBeInTheDocument();
+    
+    // Wait for loading to complete
+    await waitFor(() => {
+      expect(screen.queryByText('Loading tabs...')).not.toBeInTheDocument();
+    });
   });
 
   test('shows error state when chrome APIs fail', async () => {
+    // Suppress the expected console error during this test
+    const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    
     // Mock chrome.storage.local.get to fail
     global.chrome.storage.local.get.mockRejectedValue(new Error('API Error'));
     
@@ -129,18 +152,24 @@ describe('App', () => {
     await waitFor(() => {
       expect(screen.getByText(/Error: API Error/)).toBeInTheDocument();
     }, { timeout: 2000 });
+    
+    // Verify the console error was called (but suppressed)
+    expect(consoleSpy).toHaveBeenCalledWith('Error initializing tab groups:', expect.any(Error));
+    
+    // Restore console.error
+    consoleSpy.mockRestore();
   });
 
   test('displays default groups', async () => {
-    // Mock some stored custom groups to simulate "default" groups
+    // Mock some stored custom groups to simulate user-created groups
     global.chrome.storage.local.get.mockResolvedValue({
       customGroups: [
         {
-          name: 'Google',
+          name: 'Search Engines',
           urlPrefixes: ['https://www.google.com/']
         },
         {
-          name: 'JavaScript',
+          name: 'Documentation',
           urlPrefixes: ['https://developer.mozilla.org/en-US/docs/Web/JavaScript/']
         }
       ]
@@ -167,8 +196,8 @@ describe('App', () => {
     });
     
     await waitFor(() => {
-      expect(screen.getByText('Google')).toBeInTheDocument();
-      expect(screen.getByText('JavaScript')).toBeInTheDocument();
+      expect(screen.getByText('Search Engines')).toBeInTheDocument();
+      expect(screen.getByText('Documentation')).toBeInTheDocument();
     }, { timeout: 2000 });
   });
 
@@ -241,7 +270,9 @@ describe('App', () => {
       }
     ]);
     
-    render(<App />);
+    await act(async () => {
+      render(<App />);
+    });
     
     await waitFor(() => {
       expect(screen.getByText('GitHub Pages')).toBeInTheDocument();
@@ -285,7 +316,9 @@ describe('App', () => {
       }
     ]);
     
-    render(<App />);
+    await act(async () => {
+      render(<App />);
+    });
     
     await waitFor(() => {
       expect(screen.getByText('Documentation Sites')).toBeInTheDocument();

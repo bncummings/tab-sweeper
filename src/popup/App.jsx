@@ -29,15 +29,19 @@ const App = () => {
     }
   };
 
-  const handleGroupTabs = async () => {
+  const handleGroupTabs = async (groupName = null) => {
     setIsGrouping(true);
     try {
-      for (const [groupName, tabs] of Object.entries(tabGroups)) {
+      const groupsToProcess = groupName 
+        ? { [groupName]: tabGroups[groupName] }
+        : tabGroups;
+
+      for (const [name, tabs] of Object.entries(groupsToProcess)) {
         if (tabs.length === 0) continue;
         
         const tabIds = tabs.map(({ id }) => id);
         const tabGroup = await chrome.tabs.group({ tabIds });
-        await chrome.tabGroups.update(tabGroup, { title: groupName });
+        await chrome.tabGroups.update(tabGroup, { title: name });
       }
     } catch (error) {
       console.error('Error grouping tabs:', error);
@@ -86,19 +90,27 @@ const App = () => {
       borderBottom: '1px solid rgba(255, 255, 255, 0.25)',
       position: 'relative'
     },
+    headerContent: {
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginBottom: '16px'
+    },
     title: {
       margin: 0,
       color: STYLES.colors.white,
       fontSize: '28px',
       fontWeight: '300',
       textShadow: '0 3px 6px rgba(0, 0, 0, 0.4)',
-      letterSpacing: '2px'
+      letterSpacing: '2px',
+      textAlign: 'left'
+    },
+    buttonGroup: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: '12px'
     },
     plusButton: {
-      position: 'absolute',
-      right: '20px',
-      top: '50%',
-      transform: 'translateY(-50%)',
       width: '40px',
       height: '40px',
       borderRadius: '50%',
@@ -114,6 +126,20 @@ const App = () => {
       transition: STYLES.transitions.default,
       backdropFilter: 'blur(10px)'
     },
+    groupAllButton: {
+      background: 'rgba(255, 255, 255, 0.2)',
+      border: '2px solid rgba(255, 255, 255, 0.3)',
+      color: STYLES.colors.white,
+      borderRadius: '20px',
+      padding: '8px 16px',
+      fontSize: '14px',
+      fontWeight: '600',
+      cursor: 'pointer',
+      transition: STYLES.transitions.default,
+      backdropFilter: 'blur(10px)',
+      textTransform: 'uppercase',
+      letterSpacing: '0.5px'
+    },
     main: {
       flex: 1,
       padding: '24px',
@@ -121,26 +147,6 @@ const App = () => {
     },
     tabGroupsContainer: {
       marginBottom: '24px'
-    },
-    actions: {
-      display: 'flex',
-      justifyContent: 'center',
-      padding: '20px 0'
-    },
-    groupButton: {
-      background: `linear-gradient(135deg, ${STYLES.colors.primary} 0%, ${STYLES.colors.secondary} 100%)`,
-      color: STYLES.colors.white,
-      border: 'none',
-      borderRadius: '30px',
-      padding: '14px 40px',
-      fontSize: '18px',
-      fontWeight: '700',
-      cursor: 'pointer',
-      transition: STYLES.transitions.default,
-      boxShadow: STYLES.shadows.button,
-      minWidth: '140px',
-      textTransform: 'uppercase',
-      letterSpacing: '1px'
     },
     loadingMessage: {
       textAlign: 'center',
@@ -153,28 +159,30 @@ const App = () => {
     if (isEntering) {
       Object.assign(e.currentTarget.style, {
         background: 'rgba(255, 255, 255, 0.3)',
-        transform: 'translateY(-50%) scale(1.1)',
+        transform: 'scale(1.1)',
         boxShadow: '0 5px 15px rgba(255, 255, 255, 0.3)'
       });
     } else {
       Object.assign(e.currentTarget.style, {
         background: 'rgba(255, 255, 255, 0.2)',
-        transform: 'translateY(-50%) scale(1)',
+        transform: 'scale(1)',
         boxShadow: 'none'
       });
     }
   };
 
-  const handleGroupButtonHover = (e, isEntering) => {
+  const handleGroupAllButtonHover = (e, isEntering) => {
     if (!isGrouping && isEntering) {
       Object.assign(e.currentTarget.style, {
-        transform: 'translateY(-3px)',
-        boxShadow: STYLES.shadows.buttonHover
+        background: 'rgba(255, 255, 255, 0.3)',
+        transform: 'translateY(-2px)',
+        boxShadow: '0 5px 15px rgba(255, 255, 255, 0.3)'
       });
     } else if (!isGrouping) {
       Object.assign(e.currentTarget.style, {
+        background: 'rgba(255, 255, 255, 0.2)',
         transform: 'translateY(0)',
-        boxShadow: STYLES.shadows.button
+        boxShadow: 'none'
       });
     }
   };
@@ -211,16 +219,32 @@ const App = () => {
   return (
     <div style={styles.app}>
       <header style={styles.header}>
-        <h1 style={styles.title}>~My Tabs~</h1>
-        <button
-          style={styles.plusButton}
-          onClick={() => setIsModalOpen(true)}
-          onMouseEnter={(e) => handlePlusButtonHover(e, true)}
-          onMouseLeave={(e) => handlePlusButtonHover(e, false)}
-          title="Create new tab group"
-        >
-          +
-        </button>
+        <div style={styles.headerContent}>
+          <h1 style={styles.title}>~My Tabs~</h1>
+          
+          <div style={styles.buttonGroup}>
+            <button
+              style={styles.groupAllButton}
+              onClick={() => handleGroupTabs()}
+              disabled={isGrouping}
+              onMouseEnter={(e) => handleGroupAllButtonHover(e, true)}
+              onMouseLeave={(e) => handleGroupAllButtonHover(e, false)}
+              title="Group all tabs"
+            >
+              {isGrouping ? 'Grouping...' : 'Group All'}
+            </button>
+            
+            <button
+              style={styles.plusButton}
+              onClick={() => setIsModalOpen(true)}
+              onMouseEnter={(e) => handlePlusButtonHover(e, true)}
+              onMouseLeave={(e) => handlePlusButtonHover(e, false)}
+              title="Create new tab group"
+            >
+              +
+            </button>
+          </div>
+        </div>
       </header>
       
       <main style={styles.main}>
@@ -234,20 +258,10 @@ const App = () => {
               isCustomGroup={isCustomGroup(groupName)}
               onEditGroup={handleEditGroup}
               onDeleteGroup={deleteGroup}
+              onGroupTabs={handleGroupTabs}
+              isGrouping={isGrouping}
             />
           ))}
-        </div>
-        
-        <div style={styles.actions}>
-          <button
-            style={styles.groupButton}
-            onClick={handleGroupTabs}
-            disabled={isGrouping}
-            onMouseEnter={(e) => handleGroupButtonHover(e, true)}
-            onMouseLeave={(e) => handleGroupButtonHover(e, false)}
-          >
-            {isGrouping ? 'Grouping...' : 'Group Tabs'}
-          </button>
         </div>
       </main>
       

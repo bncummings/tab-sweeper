@@ -57,7 +57,7 @@ export const useTabGroups = () => {
       console.error('Error initializing tab groups:', error);
       setError(error.message);
       setIsLoading(false);
-      setTabGroups({ 'Google': [], 'JavaScript': [] });
+      setTabGroups({});
     }
   }, []);
 

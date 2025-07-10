@@ -5,21 +5,30 @@ const TypeIcon = ({ type }) => {
   switch (type) {
     case MATCHER_TYPES.PREFIX:
       return (
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M13.5 3A6.5 6.5 0 0 0 7 9.5c0 3.6 2.9 6.5 6.5 6.5s6.5-2.9 6.5-6.5S17.1 3 13.5 3m2.5 9.5-4-4V5h1.5v3L16 10.5V12.5z"/>
-        </svg>
+        <img 
+          src="/images/file-url.svg" 
+          width="20" 
+          height="20" 
+          alt="URL prefix"
+        />
       );
     case MATCHER_TYPES.REGEX:
       return (
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M16 4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm-1 14H9v-1.5h6V18zm0-3H9v-1.5h6V15zm0-3H9V10.5h6V12z"/>
-        </svg>
+        <img 
+          src="/images/regex.svg" 
+          width="20" 
+          height="20" 
+          alt="Regex pattern"
+        />
       );
     case MATCHER_TYPES.GLOB:
       return (
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-        </svg>
+        <img 
+          src="/images/asterisk.svg" 
+          width="20" 
+          height="20" 
+          alt="Glob pattern"
+        />
       );
     default:
       return null;

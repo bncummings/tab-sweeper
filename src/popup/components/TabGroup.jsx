@@ -26,7 +26,7 @@ const ActionButton = ({ style, onClick, onMouseEnter, onMouseLeave, title, child
   </button>
 );
 
-const TabGroup = ({ title, tabs, onTabClick, isCustomGroup, onEditGroup, onDeleteGroup }) => {
+const TabGroup = ({ title, tabs, onTabClick, isCustomGroup, onEditGroup, onDeleteGroup, onGroupTabs, isGrouping }) => {
   if (tabs.length === 0) return null;
 
   const styles = {
@@ -92,6 +92,24 @@ const TabGroup = ({ title, tabs, onTabClick, isCustomGroup, onEditGroup, onDelet
       background: STYLES.colors.dangerBg,
       color: STYLES.colors.danger
     },
+    groupButton: {
+      background: STYLES.colors.primary,
+      color: 'white',
+      padding: '8px 12px',
+      borderRadius: '6px',
+      border: 'none',
+      cursor: 'pointer',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      transition: STYLES.transitions.default,
+      fontSize: '12px',
+      fontWeight: '600',
+      textTransform: 'uppercase',
+      letterSpacing: '0.5px',
+      opacity: isGrouping ? 0.6 : 1,
+      minWidth: '80px'
+    },
     tabList: {
       display: 'flex',
       flexDirection: 'column',
@@ -125,6 +143,12 @@ const TabGroup = ({ title, tabs, onTabClick, isCustomGroup, onEditGroup, onDelet
     }
   };
 
+  const handleGroupButtonHover = (e, isHover) => {
+    if (!isGrouping) {
+      e.target.style.backgroundColor = isHover ? '#2563eb' : STYLES.colors.primary;
+    }
+  };
+
   return (
     <div 
       style={styles.container}
@@ -135,6 +159,16 @@ const TabGroup = ({ title, tabs, onTabClick, isCustomGroup, onEditGroup, onDelet
         <div style={styles.titleWithActions}>
           <h2 style={styles.titleText}>{title}</h2>
           <div style={styles.actions}>
+            <button
+              style={styles.groupButton}
+              onClick={() => onGroupTabs(title)}
+              disabled={isGrouping}
+              onMouseEnter={(e) => handleGroupButtonHover(e, true)}
+              onMouseLeave={(e) => handleGroupButtonHover(e, false)}
+              title={`Group tabs matching "${title}" pattern`}
+            >
+              {isGrouping ? 'Grouping...' : 'Group This'}
+            </button>
             <ActionButton
               style={{ ...styles.actionButton, ...styles.editButton }}
               onClick={() => onEditGroup(title)}
@@ -156,7 +190,21 @@ const TabGroup = ({ title, tabs, onTabClick, isCustomGroup, onEditGroup, onDelet
           </div>
         </div>
       ) : (
-        <h2 style={styles.title}>{title}</h2>
+        <div style={styles.titleWithActions}>
+          <h2 style={styles.titleText}>{title}</h2>
+          <div style={styles.actions}>
+            <button
+              style={styles.groupButton}
+              onClick={() => onGroupTabs(title)}
+              disabled={isGrouping}
+              onMouseEnter={(e) => handleGroupButtonHover(e, true)}
+              onMouseLeave={(e) => handleGroupButtonHover(e, false)}
+              title={`Group tabs for "${title}"`}
+            >
+              {isGrouping ? 'Grouping...' : 'Group This'}
+            </button>
+          </div>
+        </div>
       )}
       
       <div style={styles.tabList}>
