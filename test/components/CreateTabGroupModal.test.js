@@ -48,6 +48,36 @@ describe('CreateTabGroupModal', () => {
     expect(screen.getByText('Update Group')).toBeInTheDocument();
   });
 
+  test('renders edit modal with mixed matcher types', () => {
+    const editingGroup = {
+      name: 'Mixed Matchers Group',
+      matchers: [
+        { value: 'https://example.com/', type: 'prefix' },
+        { value: '^https://.*\\.github\\.io/.*', type: 'regex' },
+        { value: 'https://*/docs/**', type: 'glob' }
+      ]
+    };
+    
+    render(
+      <CreateTabGroupModal 
+        isOpen={true} 
+        onClose={mockOnClose} 
+        onCreateGroup={mockOnCreateGroup}
+        editingGroup={editingGroup}
+      />
+    );
+    
+    expect(screen.getByText('Edit Tab Group')).toBeInTheDocument();
+    expect(screen.getByDisplayValue('Mixed Matchers Group')).toBeInTheDocument();
+    
+    // Should show all three matchers with their correct values
+    expect(screen.getByDisplayValue('https://example.com/')).toBeInTheDocument();
+    expect(screen.getByDisplayValue('^https://.*\\.github\\.io/.*')).toBeInTheDocument();
+    expect(screen.getByDisplayValue('https://*/docs/**')).toBeInTheDocument();
+    
+    expect(screen.getByText('Update Group')).toBeInTheDocument();
+  });
+
   test('does not render when closed', () => {
     render(
       <CreateTabGroupModal 
@@ -287,5 +317,66 @@ describe('CreateTabGroupModal', () => {
     });
     
     alertSpy.mockRestore();
+  });
+
+  test('allows creating groups with glob patterns', async () => {
+    render(
+      <CreateTabGroupModal 
+        isOpen={true} 
+        onClose={mockOnClose} 
+        onCreateGroup={mockOnCreateGroup} 
+      />
+    );
+    
+    // Set group name
+    fireEvent.change(screen.getByPlaceholderText('e.g., React Documentation'), {
+      target: { value: 'Documentation Sites' }
+    });
+    
+    // Click toggle twice to switch to glob mode (prefix → regex → glob)
+    const toggleButton = screen.getByTitle('Switch to regex');
+    fireEvent.click(toggleButton);
+    fireEvent.click(screen.getByTitle('Switch to glob'));
+    
+    // Should show glob input field
+    expect(screen.getByPlaceholderText('e.g., https://*/docs/**')).toBeInTheDocument();
+    
+    // Add glob pattern
+    fireEvent.change(screen.getByPlaceholderText('e.g., https://*/docs/**'), {
+      target: { value: 'https://*/docs/**' }
+    });
+    
+    fireEvent.click(screen.getByText('Create Group'));
+    
+    await waitFor(() => {
+      expect(mockOnCreateGroup).toHaveBeenCalledWith('Documentation Sites', [{ value: 'https://*/docs/**', type: 'glob' }]);
+    });
+  });
+
+  test('cycles through all three matcher types when toggling', () => {
+    render(
+      <CreateTabGroupModal 
+        isOpen={true} 
+        onClose={mockOnClose} 
+        onCreateGroup={mockOnCreateGroup} 
+      />
+    );
+    
+    const toggleButton = screen.getByTitle('Switch to regex');
+    
+    // Should start with prefix (default)
+    expect(screen.getByPlaceholderText('e.g., https://react.dev/')).toBeInTheDocument();
+    
+    // First click: prefix → regex
+    fireEvent.click(toggleButton);
+    expect(screen.getByPlaceholderText('e.g., ^https://.*\\.github\\.io/.*')).toBeInTheDocument();
+    
+    // Second click: regex → glob
+    fireEvent.click(screen.getByTitle('Switch to glob'));
+    expect(screen.getByPlaceholderText('e.g., https://*/docs/**')).toBeInTheDocument();
+    
+    // Third click: glob → prefix
+    fireEvent.click(screen.getByTitle('Switch to URL prefix'));
+    expect(screen.getByPlaceholderText('e.g., https://react.dev/')).toBeInTheDocument();
   });
 });

@@ -9,14 +9,20 @@ const CreateTabGroupModal = ({ isOpen, onClose, onCreateGroup, editingGroup }) =
     if (editingGroup) {
       setGroupName(editingGroup.name);
       
-      if (editingGroup.matchType === 'regex' && editingGroup.regexPatterns) {
-        // Convert regex patterns to matchers
+      if (editingGroup.matchers) {
+        // New format with mixed matchers - use directly
+        setMatchers(editingGroup.matchers.map(matcher => ({ 
+          value: matcher.value, 
+          type: matcher.type 
+        })));
+      } else if (editingGroup.matchType === 'regex' && editingGroup.regexPatterns) {
+        // Legacy regex format
         setMatchers(editingGroup.regexPatterns.map(pattern => ({ value: pattern, type: 'regex' })));
       } else if (editingGroup.urlPrefixes) {
-        // Convert URL prefixes to matchers
+        // Legacy URL prefixes format
         setMatchers(editingGroup.urlPrefixes.map(prefix => ({ value: prefix, type: 'prefix' })));
       } else if (editingGroup.urlPrefix) {
-        // Handle legacy single urlPrefix
+        // Legacy single urlPrefix format
         setMatchers([{ value: editingGroup.urlPrefix, type: 'prefix' }]);
       } else {
         setMatchers([{ value: '', type: 'prefix' }]);
@@ -90,7 +96,17 @@ const CreateTabGroupModal = ({ isOpen, onClose, onCreateGroup, editingGroup }) =
 
   const toggleMatcherType = (index) => {
     const newMatchers = [...matchers];
-    newMatchers[index].type = newMatchers[index].type === 'prefix' ? 'regex' : 'prefix';
+    const currentType = newMatchers[index].type;
+    
+    // Cycle through: prefix → regex → glob → prefix
+    if (currentType === 'prefix') {
+      newMatchers[index].type = 'regex';
+    } else if (currentType === 'regex') {
+      newMatchers[index].type = 'glob';
+    } else {
+      newMatchers[index].type = 'prefix';
+    }
+    
     setMatchers(newMatchers);
   };
 
@@ -311,7 +327,11 @@ const CreateTabGroupModal = ({ isOpen, onClose, onCreateGroup, editingGroup }) =
                     type="text"
                     value={matcher.value}
                     onChange={(e) => updateMatcher(index, e.target.value)}
-                    placeholder={matcher.type === 'prefix' ? 'e.g., https://react.dev/' : 'e.g., ^https://.*\\.github\\.io/.*'}
+                    placeholder={
+                      matcher.type === 'prefix' ? 'e.g., https://react.dev/' :
+                      matcher.type === 'regex' ? 'e.g., ^https://.*\\.github\\.io/.*' :
+                      'e.g., https://*/docs/**'
+                    }
                     style={matcherInputStyle}
                     onFocus={(e) => e.currentTarget.style.borderColor = '#667eea'}
                     onBlur={(e) => e.currentTarget.style.borderColor = '#e2e8f0'}
@@ -322,7 +342,11 @@ const CreateTabGroupModal = ({ isOpen, onClose, onCreateGroup, editingGroup }) =
                     onClick={() => toggleMatcherType(index)}
                     style={toggleButtonStyle}
                     disabled={isSubmitting}
-                    title={matcher.type === 'prefix' ? 'Switch to regex' : 'Switch to URL prefix'}
+                    title={
+                      matcher.type === 'prefix' ? 'Switch to regex' :
+                      matcher.type === 'regex' ? 'Switch to glob' :
+                      'Switch to URL prefix'
+                    }
                     onMouseEnter={(e) => {
                       if (!isSubmitting) {
                         e.currentTarget.style.background = '#f0f4ff';
@@ -335,13 +359,19 @@ const CreateTabGroupModal = ({ isOpen, onClose, onCreateGroup, editingGroup }) =
                     }}
                   >
                     {matcher.type === 'prefix' ? (
+                      // URL prefix icon (link)
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
                         <path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H6.5C4.01 7 2 9.01 2 11.5S4.01 16 6.5 16H11v-1.9H6.5c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9.5-6H13v1.9h4.5c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1H13V16h4.5c2.49 0 4.5-2.01 4.5-4.5S19.99 7 17.5 7z"/>
                       </svg>
-                    ) : (
+                    ) : matcher.type === 'regex' ? (
+                      // Regex icon (code)
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M15.41 16.59L10.83 12l4.58-4.59L14 6l-6 6 6 6 1.41-1.41z"/>
-                        <path d="M8.5 6C6.01 6 4 8.01 4 10.5S6.01 15 8.5 15H12v-2H8.5C7.12 13 6 11.88 6 10.5S7.12 8 8.5 8H12V6H8.5z"/>
+                        <path d="M9.4 16.6L4.8 12l4.6-4.6L8 6l-6 6 6 6 1.4-1.4zm5.2 0L19.2 12l-4.6-4.6L16 6l6 6-6 6-1.4-1.4z"/>
+                      </svg>
+                    ) : (
+                      // Glob icon (asterisk/star)
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
                       </svg>
                     )}
                   </button>
@@ -385,7 +415,7 @@ const CreateTabGroupModal = ({ isOpen, onClose, onCreateGroup, editingGroup }) =
               Add Matcher
             </button>
             <small style={{color: '#718096', fontSize: '12px'}}>
-              Add URL prefixes or regex patterns to match tabs. Click the icon to toggle between types.
+              Add URL prefixes, regex patterns, or glob patterns to match tabs. Click the icon to cycle between types.
             </small>
           </div>
           

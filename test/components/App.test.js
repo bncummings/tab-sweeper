@@ -251,4 +251,49 @@ describe('App', () => {
     // The non-matching tab should not be in the group
     expect(screen.queryByText('Another Site')).not.toBeInTheDocument();
   });
+
+  test('creates glob-based tab groups', async () => {
+    // Mock chrome.storage.local.get to return a glob group
+    chrome.storage.local.get.mockResolvedValue({
+      customGroups: [
+        { 
+          name: 'Documentation Sites', 
+          matchers: [{ value: 'https://*/docs/**', type: 'glob' }]
+        }
+      ]
+    });
+    
+    // Mock chrome.tabs.query to return some tabs
+    chrome.tabs.query.mockResolvedValue([
+      {
+        id: 1,
+        title: 'React Docs',
+        url: 'https://react.dev/docs/getting-started',
+        favIconUrl: 'https://react.dev/favicon.ico'
+      },
+      {
+        id: 2,
+        title: 'Vue Docs',
+        url: 'https://vuejs.org/docs/guide',
+        favIconUrl: 'https://vuejs.org/favicon.ico'
+      },
+      {
+        id: 3,
+        title: 'Other Site',
+        url: 'https://example.com/home',
+        favIconUrl: 'https://example.com/favicon.ico'
+      }
+    ]);
+    
+    render(<App />);
+    
+    await waitFor(() => {
+      expect(screen.getByText('Documentation Sites')).toBeInTheDocument();
+      expect(screen.getByText('React Docs')).toBeInTheDocument();
+      expect(screen.getByText('Vue Docs')).toBeInTheDocument();
+    });
+    
+    // The non-matching tab should not be in the group
+    expect(screen.queryByText('Other Site')).not.toBeInTheDocument();
+  });
 });

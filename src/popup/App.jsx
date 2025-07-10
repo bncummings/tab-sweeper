@@ -15,6 +15,17 @@ const isValidUrl = (urlString) => {
   }
 };
 
+// Utility function to convert glob pattern to regex
+const globToRegex = (globPattern) => {
+  // Escape special regex characters except * and ?
+  const escapedPattern = globPattern
+    .replace(/[.+^${}()|[\]\\]/g, '\\$&')
+    .replace(/\*/g, '.*')
+    .replace(/\?/g, '.');
+  
+  return new RegExp(`^${escapedPattern}$`);
+};
+
 const App = () => {
   const [tabGroups, setTabGroups] = useState({});
   const [isGrouping, setIsGrouping] = useState(false);
@@ -75,6 +86,7 @@ const App = () => {
           // Separate matchers by type for efficient processing
           const prefixMatchers = group.matchers.filter(m => m.type === 'prefix');
           const regexMatchers = group.matchers.filter(m => m.type === 'regex');
+          const globMatchers = group.matchers.filter(m => m.type === 'glob');
           
           // Get tabs matching URL prefixes using Chrome API
           if (prefixMatchers.length > 0) {
@@ -103,6 +115,24 @@ const App = () => {
               });
             });
             matchingTabs.push(...regexTabs);
+          }
+          
+          // Get tabs matching glob patterns by filtering all tabs
+          if (globMatchers.length > 0) {
+            // Filter to only include tabs with valid URLs
+            const validUrlTabs = allTabs.filter(tab => isValidUrl(tab.url));
+            const globTabs = validUrlTabs.filter(tab => {
+              return globMatchers.some(matcher => {
+                try {
+                  const globRegex = globToRegex(matcher.value);
+                  return globRegex.test(tab.url);
+                } catch (error) {
+                  console.error(`Invalid glob pattern "${matcher.value}":`, error);
+                  return false;
+                }
+              });
+            });
+            matchingTabs.push(...globTabs);
           }
           
           // Remove duplicates (a tab might match both prefix and regex)
@@ -161,12 +191,12 @@ const App = () => {
 
   const handleCreateCustomGroup = async (groupName, matchers) => {
     try {
-      // Filter out invalid URL prefixes but keep all regex patterns
+      // Filter out invalid URL prefixes but keep all regex and glob patterns
       const validMatchers = matchers.filter(m => {
         if (m.type === 'prefix') {
           return isValidUrl(m.value.trim());
         }
-        return true; // Keep all regex patterns
+        return true; // Keep all regex and glob patterns
       }).map(m => ({ value: m.value.trim(), type: m.type }));
       
       // Skip if no valid matchers remain
@@ -192,6 +222,7 @@ const App = () => {
       // Separate matchers by type for efficient processing
       const prefixMatchers = validMatchers.filter(m => m.type === 'prefix');
       const regexMatchers = validMatchers.filter(m => m.type === 'regex');
+      const globMatchers = validMatchers.filter(m => m.type === 'glob');
       
       // Get tabs matching URL prefixes using Chrome API
       if (prefixMatchers.length > 0) {
@@ -217,6 +248,25 @@ const App = () => {
           });
         });
         matchingTabs.push(...regexTabs);
+      }
+      
+      // Get tabs matching glob patterns by filtering all tabs
+      if (globMatchers.length > 0) {
+        const allTabs = await chrome.tabs.query({});
+        // Filter to only include tabs with valid URLs
+        const validUrlTabs = allTabs.filter(tab => isValidUrl(tab.url));
+        const globTabs = validUrlTabs.filter(tab => {
+          return globMatchers.some(matcher => {
+            try {
+              const globRegex = globToRegex(matcher.value);
+              return globRegex.test(tab.url);
+            } catch (error) {
+              console.error(`Invalid glob pattern "${matcher.value}":`, error);
+              return false;
+            }
+          });
+        });
+        matchingTabs.push(...globTabs);
       }
       
       // Remove duplicates
@@ -250,12 +300,12 @@ const App = () => {
 
   const handleUpdateGroup = async (originalName, newName, matchers) => {
     try {
-      // Filter out invalid URL prefixes but keep all regex patterns
+      // Filter out invalid URL prefixes but keep all regex and glob patterns
       const validMatchers = matchers.filter(m => {
         if (m.type === 'prefix') {
           return isValidUrl(m.value.trim());
         }
-        return true; // Keep all regex patterns
+        return true; // Keep all regex and glob patterns
       }).map(m => ({ value: m.value.trim(), type: m.type }));
       
       // Skip if no valid matchers remain
@@ -290,6 +340,7 @@ const App = () => {
       // Separate matchers by type for efficient processing
       const prefixMatchers = validMatchers.filter(m => m.type === 'prefix');
       const regexMatchers = validMatchers.filter(m => m.type === 'regex');
+      const globMatchers = validMatchers.filter(m => m.type === 'glob');
       
       // Get tabs matching URL prefixes using Chrome API
       if (prefixMatchers.length > 0) {
@@ -315,6 +366,25 @@ const App = () => {
           });
         });
         matchingTabs.push(...regexTabs);
+      }
+      
+      // Get tabs matching glob patterns by filtering all tabs
+      if (globMatchers.length > 0) {
+        const allTabs = await chrome.tabs.query({});
+        // Filter to only include tabs with valid URLs
+        const validUrlTabs = allTabs.filter(tab => isValidUrl(tab.url));
+        const globTabs = validUrlTabs.filter(tab => {
+          return globMatchers.some(matcher => {
+            try {
+              const globRegex = globToRegex(matcher.value);
+              return globRegex.test(tab.url);
+            } catch (error) {
+              console.error(`Invalid glob pattern "${matcher.value}":`, error);
+              return false;
+            }
+          });
+        });
+        matchingTabs.push(...globTabs);
       }
       
       // Remove duplicates
