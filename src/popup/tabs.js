@@ -1,5 +1,4 @@
 const tabGroups = [];
-const permissions = [];
 
 class TabGroup {
   constructor(name) {
@@ -10,8 +9,7 @@ class TabGroup {
   addUris(...uris) {
     uris.forEach((uri) => {
       if (!this.uris.includes(uri)) {
-      this.uris.push(uri);
-      //update permissions
+        this.uris.push(uri);
       } else {
         console.warn(`URI ${uri} already exists in group ${this.name}.`);
       }
@@ -19,23 +17,14 @@ class TabGroup {
   }
 }
 
-// factory method for a new tabGroup
-function createGroup(groupName) {
+export const createGroup = (groupName) => {
   if (!tabGroups.includes(groupName)) {
-    const newGroup = new TabGroup(groupName)
+    const newGroup = new TabGroup(groupName);
     tabGroups.push(newGroup);
     return newGroup;
   } else {
-    console.warn(`A group with name: \"${groupName}\" already exists.`);
+    console.warn(`A group with name: "${groupName}" already exists.`);
   }
-}
+};
 
-function removeGroup(groupName) {
-
-}
-
-function updatePermissions() {
-
-}
-
-export default  { tabGroups, createGroup };
+export default { tabGroups, createGroup };

@@ -1,160 +1,172 @@
 import React from 'react';
 import TabItem from './TabItem';
+import { STYLES } from '../constants.js';
+
+const EditIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
+  </svg>
+);
+
+const DeleteIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
+  </svg>
+);
+
+const ActionButton = ({ style, onClick, onMouseEnter, onMouseLeave, title, children }) => (
+  <button
+    style={style}
+    onClick={onClick}
+    onMouseEnter={onMouseEnter}
+    onMouseLeave={onMouseLeave}
+    title={title}
+  >
+    {children}
+  </button>
+);
 
 const TabGroup = ({ title, tabs, onTabClick, isCustomGroup, onEditGroup, onDeleteGroup }) => {
-  const tabGroupStyle = {
-    marginBottom: '24px',
-    background: '#ffffff',
-    borderRadius: '18px',
-    padding: '24px',
-    boxShadow: '0 8px 25px rgba(0, 0, 0, 0.15)',
-    border: '2px solid rgba(255, 255, 255, 0.9)',
-    transition: 'transform 0.2s ease, box-shadow 0.2s ease',
-    cursor: 'default'
+  if (tabs.length === 0) return null;
+
+  const styles = {
+    container: {
+      marginBottom: '24px',
+      background: STYLES.colors.white,
+      borderRadius: '18px',
+      padding: '24px',
+      boxShadow: STYLES.shadows.card,
+      border: '2px solid rgba(255, 255, 255, 0.9)',
+      transition: STYLES.transitions.default,
+      cursor: 'default'
+    },
+    title: {
+      margin: '0 0 18px 0',
+      fontSize: '22px',
+      fontWeight: '800',
+      color: STYLES.colors.text,
+      borderBottom: `4px solid ${STYLES.colors.primary}`,
+      paddingBottom: '14px',
+      textAlign: 'center',
+      textTransform: 'uppercase',
+      letterSpacing: '1px'
+    },
+    titleWithActions: {
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: '18px'
+    },
+    titleText: {
+      fontSize: '22px',
+      fontWeight: '800',
+      color: STYLES.colors.text,
+      borderBottom: `4px solid ${STYLES.colors.primary}`,
+      paddingBottom: '14px',
+      textTransform: 'uppercase',
+      letterSpacing: '1px',
+      textAlign: 'left'
+    },
+    actions: {
+      display: 'flex',
+      gap: '8px',
+      alignItems: 'center'
+    },
+    actionButton: {
+      padding: '8px',
+      borderRadius: '6px',
+      border: 'none',
+      cursor: 'pointer',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      transition: STYLES.transitions.default,
+      width: '32px',
+      height: '32px'
+    },
+    editButton: {
+      background: STYLES.colors.border,
+      color: '#4a5568'
+    },
+    deleteButton: {
+      background: STYLES.colors.dangerBg,
+      color: STYLES.colors.danger
+    },
+    tabList: {
+      display: 'flex',
+      flexDirection: 'column',
+      gap: '10px'
+    },
+    emptyMessage: {
+      textAlign: 'center',
+      padding: '20px',
+      color: STYLES.colors.muted,
+      fontStyle: 'italic'
+    }
   };
 
-  const groupTitleStyle = {
-    margin: '0 0 18px 0',
-    fontSize: '22px',
-    fontWeight: '800',
-    color: '#2d3748',
-    borderBottom: '4px solid #667eea',
-    paddingBottom: '14px',
-    textAlign: 'center',
-    textTransform: 'uppercase',
-    letterSpacing: '1px',
-    position: 'relative'
+  const handleContainerMouseEnter = (e) => {
+    Object.assign(e.currentTarget.style, {
+      transform: 'translateY(-4px)',
+      boxShadow: STYLES.shadows.cardHover
+    });
   };
 
-  const titleActionsStyle = {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: '18px'
+  const handleContainerMouseLeave = (e) => {
+    Object.assign(e.currentTarget.style, {
+      transform: 'translateY(0)',
+      boxShadow: STYLES.shadows.card
+    });
   };
 
-  const titleTextStyle = {
-    fontSize: '22px',
-    fontWeight: '800',
-    color: '#2d3748',
-    borderBottom: '4px solid #667eea',
-    paddingBottom: '14px',
-    textTransform: 'uppercase',
-    letterSpacing: '1px',
-    textAlign: 'left'
-  };
-
-  const actionsStyle = {
-    display: 'flex',
-    gap: '8px',
-    alignItems: 'center'
-  };
-
-  const actionButtonStyle = {
-    padding: '8px',
-    borderRadius: '6px',
-    border: 'none',
-    cursor: 'pointer',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    transition: 'all 0.2s ease',
-    width: '32px',
-    height: '32px'
-  };
-
-  const editButtonStyle = {
-    ...actionButtonStyle,
-    background: '#e2e8f0',
-    color: '#4a5568'
-  };
-
-  const deleteButtonStyle = {
-    ...actionButtonStyle,
-    background: '#fed7d7',
-    color: '#c53030'
-  };
-
-  const tabListStyle = {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '10px'
+  const handleDeleteClick = () => {
+    if (window.confirm(`Are you sure you want to delete the "${title}" group?`)) {
+      onDeleteGroup(title);
+    }
   };
 
   return (
     <div 
-      style={tabGroupStyle}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.transform = 'translateY(-4px)';
-        e.currentTarget.style.boxShadow = '0 15px 35px rgba(0, 0, 0, 0.2)';
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.transform = 'translateY(0)';
-        e.currentTarget.style.boxShadow = '0 8px 25px rgba(0, 0, 0, 0.15)';
-      }}
+      style={styles.container}
+      onMouseEnter={handleContainerMouseEnter}
+      onMouseLeave={handleContainerMouseLeave}
     >
       {isCustomGroup ? (
-        <div style={titleActionsStyle}>
-          <h2 style={titleTextStyle}>{title}</h2>
-          <div style={actionsStyle}>
-            <button
-              style={editButtonStyle}
+        <div style={styles.titleWithActions}>
+          <h2 style={styles.titleText}>{title}</h2>
+          <div style={styles.actions}>
+            <ActionButton
+              style={{ ...styles.actionButton, ...styles.editButton }}
               onClick={() => onEditGroup(title)}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = '#cbd5e0';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = '#e2e8f0';
-              }}
+              onMouseEnter={(e) => e.currentTarget.style.background = '#cbd5e0'}
+              onMouseLeave={(e) => e.currentTarget.style.background = STYLES.colors.border}
               title="Edit group"
             >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
-              </svg>
-            </button>
-            <button
-              style={deleteButtonStyle}
-              onClick={() => {
-                if (window.confirm(`Are you sure you want to delete the "${title}" group?`)) {
-                  onDeleteGroup(title);
-                }
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = '#f56565';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = '#fed7d7';
-              }}
+              <EditIcon />
+            </ActionButton>
+            <ActionButton
+              style={{ ...styles.actionButton, ...styles.deleteButton }}
+              onClick={handleDeleteClick}
+              onMouseEnter={(e) => e.currentTarget.style.background = '#f56565'}
+              onMouseLeave={(e) => e.currentTarget.style.background = STYLES.colors.dangerBg}
               title="Delete group"
             >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
-              </svg>
-            </button>
+              <DeleteIcon />
+            </ActionButton>
           </div>
         </div>
       ) : (
-        <h2 style={groupTitleStyle}>{title}</h2>
+        <h2 style={styles.title}>{title}</h2>
       )}
-      <div style={tabListStyle}>
-        {tabs.length > 0 ? (
-          tabs.map((tab) => (
-            <TabItem
-              key={tab.id}
-              tab={tab}
-              onClick={() => onTabClick(tab)}
-            />
-          ))
-        ) : (
-          <div style={{
-            textAlign: 'center',
-            padding: '20px',
-            color: '#718096',
-            fontStyle: 'italic'
-          }}>
-            No tabs found matching this group
-          </div>
-        )}
+      
+      <div style={styles.tabList}>
+        {tabs.map((tab) => (
+          <TabItem
+            key={tab.id}
+            tab={tab}
+            onClick={onTabClick}
+          />
+        ))}
       </div>
     </div>
   );
