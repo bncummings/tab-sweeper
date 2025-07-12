@@ -1,7 +1,7 @@
 // Simple test to verify multi-prefix functionality
 // This can be run in the browser console when the extension is loaded
 
-// Test data to simulate custom groups
+// Test data to simulate tab groups
 const testGroups = [
   {
     name: "React Documentation",
@@ -18,15 +18,15 @@ async function testStorage() {
   console.log("Testing storage functionality...");
   
   // Store test groups
-  await chrome.storage.local.set({ customGroups: testGroups });
+  await chrome.storage.local.set({ tabGroups: testGroups });
   console.log("✓ Stored test groups");
   
   // Retrieve groups
-  const result = await chrome.storage.local.get('customGroups');
-  console.log("✓ Retrieved groups:", result.customGroups);
+  const result = await chrome.storage.local.get('tabGroups');
+  console.log("✓ Retrieved groups:", result.tabGroups);
   
   // Verify multi-prefix support
-  const reactGroup = result.customGroups.find(g => g.name === "React Documentation");
+  const reactGroup = result.tabGroups.find(g => g.name === "React Documentation");
   if (reactGroup && reactGroup.urlPrefixes && reactGroup.urlPrefixes.length === 3) {
     console.log("✓ Multi-prefix support verified");
   } else {

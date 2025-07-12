@@ -6,18 +6,18 @@ import tabsModule from '../tabs.js';
 
 const { createGroup } = tabsModule;
 
-const convertLegacyGroupFormat = (customGroup) => {
-  const group = createGroup(customGroup.name);
+const convertLegacyGroupFormat = (tabGroup) => {
+  const group = createGroup(tabGroup.name);
   
-  if (customGroup.matchers) {
-    group.matchers = customGroup.matchers;
-  } else if (customGroup.matchType === 'regex') {
-    group.matchers = customGroup.regexPatterns.map(pattern => ({ 
+  if (tabGroup.matchers) {
+    group.matchers = tabGroup.matchers;
+  } else if (tabGroup.matchType === 'regex') {
+    group.matchers = tabGroup.regexPatterns.map(pattern => ({ 
       value: pattern, 
       type: 'regex' 
     }));
   } else {
-    const prefixes = customGroup.urlPrefixes || [customGroup.urlPrefix];
+    const prefixes = tabGroup.urlPrefixes || [tabGroup.urlPrefix];
     group.matchers = prefixes.map(prefix => ({ 
       value: prefix, 
       type: 'prefix' 
@@ -29,7 +29,7 @@ const convertLegacyGroupFormat = (customGroup) => {
 
 export const useTabGroups = () => {
   const [tabGroups, setTabGroups] = useState({});
-  const [customGroups, setCustomGroups] = useState([]);
+  const [userTabGroups, setUserTabGroups] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -39,13 +39,13 @@ export const useTabGroups = () => {
         throw new Error('Chrome APIs not available');
       }
 
-      const savedCustomGroups = await storage.getCustomGroups();
-      setCustomGroups(savedCustomGroups);
+      const savedTabGroups = await storage.getTabGroups();
+      setUserTabGroups(savedTabGroups);
 
-      const customGroupObjects = savedCustomGroups.map(convertLegacyGroupFormat);
+      const tabGroupObjects = savedTabGroups.map(convertLegacyGroupFormat);
       const groups = {};
       
-      for (const group of customGroupObjects) {
+      for (const group of tabGroupObjects) {
         const matchingTabs = await findMatchingTabs(group.matchers);
         const uniqueTabs = removeDuplicateTabs(matchingTabs);
         groups[group.name] = sortTabsByTitle(uniqueTabs);
@@ -61,7 +61,7 @@ export const useTabGroups = () => {
     }
   }, []);
 
-  const createCustomGroup = useCallback(async (groupName, matchers) => {
+  const createTabGroup = useCallback(async (groupName, matchers) => {
     const validMatchers = matchers
       .filter(m => m.type !== 'prefix' || isValidUrl(m.value.trim()))
       .map(m => ({ value: m.value.trim(), type: m.type }));
@@ -71,18 +71,18 @@ export const useTabGroups = () => {
       return;
     }
     
-    const newCustomGroup = { name: groupName, matchers: validMatchers };
-    const updatedCustomGroups = [...customGroups, newCustomGroup];
+    const newTabGroup = { name: groupName, matchers: validMatchers };
+    const updatedTabGroups = [...userTabGroups, newTabGroup];
     
-    await storage.saveCustomGroups(updatedCustomGroups);
-    setCustomGroups(updatedCustomGroups);
+    await storage.saveTabGroups(updatedTabGroups);
+    setUserTabGroups(updatedTabGroups);
     
     const matchingTabs = await findMatchingTabs(validMatchers);
     const uniqueTabs = removeDuplicateTabs(matchingTabs);
     const sortedTabs = sortTabsByTitle(uniqueTabs);
     
     setTabGroups(prev => ({ ...prev, [groupName]: sortedTabs }));
-  }, [customGroups]);
+  }, [userTabGroups]);
 
   const updateGroup = useCallback(async (originalName, newName, matchers) => {
     const validMatchers = matchers
@@ -94,14 +94,14 @@ export const useTabGroups = () => {
       return;
     }
     
-    const updatedCustomGroups = customGroups.map(group => 
+    const updatedTabGroups = userTabGroups.map(group => 
       group.name === originalName 
         ? { name: newName, matchers: validMatchers }
         : group
     );
     
-    await storage.saveCustomGroups(updatedCustomGroups);
-    setCustomGroups(updatedCustomGroups);
+    await storage.saveTabGroups(updatedTabGroups);
+    setUserTabGroups(updatedTabGroups);
     
     const newTabGroups = { ...tabGroups };
     if (originalName !== newName) {
@@ -113,21 +113,18 @@ export const useTabGroups = () => {
     const sortedTabs = sortTabsByTitle(uniqueTabs);
     
     setTabGroups({ ...newTabGroups, [newName]: sortedTabs });
-  }, [customGroups, tabGroups]);
+  }, [userTabGroups, tabGroups]);
 
   const deleteGroup = useCallback(async (groupName) => {
-    const updatedCustomGroups = customGroups.filter(g => g.name !== groupName);
+    const updatedTabGroups = userTabGroups.filter(g => g.name !== groupName);
     
-    await storage.saveCustomGroups(updatedCustomGroups);
-    setCustomGroups(updatedCustomGroups);
+    await storage.saveTabGroups(updatedTabGroups);
+    setUserTabGroups(updatedTabGroups);
     
     const newTabGroups = { ...tabGroups };
     delete newTabGroups[groupName];
     setTabGroups(newTabGroups);
-  }, [customGroups, tabGroups]);
-
-  const isCustomGroup = useCallback((groupName) => 
-    customGroups.some(g => g.name === groupName), [customGroups]);
+  }, [userTabGroups, tabGroups]);
 
   useEffect(() => {
     initializeTabGroups();
@@ -135,12 +132,11 @@ export const useTabGroups = () => {
 
   return {
     tabGroups,
-    customGroups,
+    userTabGroups,
     isLoading,
     error,
-    createCustomGroup,
+    createTabGroup,
     updateGroup,
-    deleteGroup,
-    isCustomGroup
+    deleteGroup
   };
 };

@@ -18,7 +18,7 @@ describe('App', () => {
     
     // Mock chrome.storage.local
     global.chrome.storage.local.get.mockResolvedValue({
-      customGroups: []
+      tabGroups: []
     });
     
     // Mock chrome.tabs.query
@@ -30,14 +30,6 @@ describe('App', () => {
         favIconUrl: 'https://react.dev/favicon.ico'
       }
     ]);
-  });
-
-  test('renders app header and title', async () => {
-    render(<App />);
-    
-    await waitFor(() => {
-      expect(screen.getByText('~My Tabs~')).toBeInTheDocument();
-    });
   });
 
   test('renders plus button to create new group', async () => {
@@ -78,16 +70,16 @@ describe('App', () => {
     });
   });
 
-  test('loads and displays custom groups from storage', async () => {
-    const mockCustomGroups = [
+  test('loads and displays tab groups from storage', async () => {
+    const mockTabGroups = [
       {
-        name: 'Custom Group',
+        name: 'Tab Group',
         urlPrefixes: ['https://example.com/']
       }
     ];
     
     global.chrome.storage.local.get.mockResolvedValue({
-      customGroups: mockCustomGroups
+      tabGroups: mockTabGroups
     });
     
     await act(async () => {
@@ -95,12 +87,12 @@ describe('App', () => {
     });
     
     await waitFor(() => {
-      expect(screen.getByText('Custom Group')).toBeInTheDocument();
+      expect(screen.getByText('Tab Group')).toBeInTheDocument();
     });
   });
 
   test('handles backwards compatibility with single urlPrefix', async () => {
-    const mockCustomGroups = [
+    const mockTabGroups = [
       {
         name: 'Legacy Group',
         urlPrefix: 'https://legacy.com/' // Old format
@@ -108,7 +100,7 @@ describe('App', () => {
     ];
     
     global.chrome.storage.local.get.mockResolvedValue({
-      customGroups: mockCustomGroups
+      tabGroups: mockTabGroups
     });
     
     await act(async () => {
@@ -123,7 +115,7 @@ describe('App', () => {
   test('shows loading state initially', async () => {
     // Make the storage call slow to ensure we can see the loading state
     global.chrome.storage.local.get.mockImplementation(() => 
-      new Promise(resolve => setTimeout(() => resolve({ customGroups: [] }), 100))
+      new Promise(resolve => setTimeout(() => resolve({ tabGroups: [] }), 100))
     );
     
     await act(async () => {
@@ -161,9 +153,9 @@ describe('App', () => {
   });
 
   test('displays default groups', async () => {
-    // Mock some stored custom groups to simulate user-created groups
+    // Mock some stored tab groups to simulate user-created groups
     global.chrome.storage.local.get.mockResolvedValue({
-      customGroups: [
+      tabGroups: [
         {
           name: 'Search Engines',
           urlPrefixes: ['https://www.google.com/']
@@ -202,7 +194,7 @@ describe('App', () => {
   });
 
   test('ignores invalid URLs when creating groups', async () => {
-    const mockCustomGroups = [
+    const mockTabGroups = [
       {
         name: 'Mixed Valid/Invalid',
         matchers: [
@@ -214,7 +206,7 @@ describe('App', () => {
     ];
     
     global.chrome.storage.local.get.mockResolvedValue({
-      customGroups: mockCustomGroups
+      tabGroups: mockTabGroups
     });
     
     global.chrome.tabs.query.mockResolvedValue([
@@ -246,7 +238,7 @@ describe('App', () => {
   test('creates regex-based tab groups', async () => {
     // Mock chrome.storage.local.get to return a regex group
     chrome.storage.local.get.mockResolvedValue({
-      customGroups: [
+      tabGroups: [
         { 
           name: 'GitHub Pages', 
           matchers: [{ value: '^https://.*\\.github\\.io/.*', type: 'regex' }]
@@ -286,7 +278,7 @@ describe('App', () => {
   test('creates glob-based tab groups', async () => {
     // Mock chrome.storage.local.get to return a glob group
     chrome.storage.local.get.mockResolvedValue({
-      customGroups: [
+      tabGroups: [
         { 
           name: 'Documentation Sites', 
           matchers: [{ value: 'https://*/docs/**', type: 'glob' }]

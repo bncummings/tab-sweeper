@@ -14,13 +14,12 @@ const App = () => {
 
   const {
     tabGroups,
-    customGroups,
+    userTabGroups,
     isLoading,
     error,
-    createCustomGroup,
+    createTabGroup,
     updateGroup,
-    deleteGroup,
-    isCustomGroup
+    deleteGroup
   } = useTabGroups();
 
   const handleTabClick = async (tab) => {
@@ -54,7 +53,7 @@ const App = () => {
   };
 
   const handleEditGroup = (groupName) => {
-    const group = customGroups.find(g => g.name === groupName);
+    const group = userTabGroups.find(g => g.name === groupName);
     if (group) {
       setEditingGroup(group);
       setIsModalOpen(true);
@@ -70,7 +69,7 @@ const App = () => {
     if (editingGroup) {
       await updateGroup(...args);
     } else {
-      await createCustomGroup(...args);
+      await createTabGroup(...args);
     }
   };
 
@@ -211,7 +210,6 @@ const App = () => {
               title={groupName}
               tabs={tabs}
               onTabClick={handleTabClick}
-              isCustomGroup={isCustomGroup(groupName)}
               onEditGroup={handleEditGroup}
               onDeleteGroup={deleteGroup}
               onGroupTabs={handleGroupTabs}

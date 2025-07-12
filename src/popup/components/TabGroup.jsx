@@ -85,7 +85,7 @@ const ActionButton = ({ variant, onClick, title, children, disabled }) => (
   </SketchyButton>
 );
 
-const TabGroup = ({ title, tabs, onTabClick, isCustomGroup, onEditGroup, onDeleteGroup, onGroupTabs, isGrouping }) => {
+const TabGroup = ({ title, tabs, onTabClick, onEditGroup, onDeleteGroup, onGroupTabs, isGrouping }) => {
   const svgRef = useRef(null);
   const containerRef = useRef(null);
   const [isHovered, setIsHovered] = useState(false);
@@ -256,59 +256,38 @@ const TabGroup = ({ title, tabs, onTabClick, isCustomGroup, onEditGroup, onDelet
       onMouseLeave={handleContainerMouseLeave}
     >
       <svg ref={svgRef} style={styles.svg} />
-      {isCustomGroup ? (
-        <div style={styles.titleWithActions} onClick={toggleExpanded}>
-          <h2 style={styles.titleText}>
-            <ChevronIcon isExpanded={isExpanded} />
-            {title}
-          </h2>
-          <div style={styles.actions} onClick={(e) => e.stopPropagation()}>
-            <SketchyButton
-              variant="primary"
-              onClick={() => onGroupTabs(title)}
-              disabled={isGrouping}
-              title={`Group tabs matching "${title}" pattern`}
-              size="small"
-              style={{ fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.5px', minWidth: '80px' }}
-            >
-              {isGrouping ? 'Grouping...' : 'Group'}
-            </SketchyButton>
-            <ActionButton
-              variant="secondary"
-              onClick={() => onEditGroup(title)}
-              title="Edit group"
-            >
-              <EditIcon />
-            </ActionButton>
-            <ActionButton
-              variant="danger"
-              onClick={handleDeleteClick}
-              title="Delete group"
-            >
-              <DeleteIcon />
-            </ActionButton>
-          </div>
+      <div style={styles.titleWithActions} onClick={toggleExpanded}>
+        <h2 style={styles.titleText}>
+          <ChevronIcon isExpanded={isExpanded} />
+          {title}
+        </h2>
+        <div style={styles.actions} onClick={(e) => e.stopPropagation()}>
+          <SketchyButton
+            variant="primary"
+            onClick={() => onGroupTabs(title)}
+            disabled={isGrouping}
+            title={`Group tabs matching "${title}" pattern`}
+            size="small"
+            style={{ fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.5px', minWidth: '80px' }}
+          >
+            {isGrouping ? 'Grouping...' : 'Group'}
+          </SketchyButton>
+          <ActionButton
+            variant="secondary"
+            onClick={() => onEditGroup(title)}
+            title="Edit group"
+          >
+            <EditIcon />
+          </ActionButton>
+          <ActionButton
+            variant="danger"
+            onClick={handleDeleteClick}
+            title="Delete group"
+          >
+            <DeleteIcon />
+          </ActionButton>
         </div>
-      ) : (
-        <div style={styles.titleWithActions} onClick={toggleExpanded}>
-          <h2 style={styles.titleText}>
-            <ChevronIcon isExpanded={isExpanded} />
-            {title}
-          </h2>
-          <div style={styles.actions} onClick={(e) => e.stopPropagation()}>
-            <SketchyButton
-              variant="primary"
-              onClick={() => onGroupTabs(title)}
-              disabled={isGrouping}
-              title={`Group tabs for "${title}"`}
-              size="small"
-              style={{ fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.5px', minWidth: '80px' }}
-            >
-              {isGrouping ? 'Grouping...' : 'Group'}
-            </SketchyButton>
-          </div>
-        </div>
-      )}
+      </div>
       
       <div style={styles.tabList}>
         {tabs.map((tab) => (

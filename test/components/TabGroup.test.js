@@ -33,7 +33,6 @@ describe('TabGroup', () => {
         title="React Documentation"
         tabs={mockTabs}
         onTabClick={mockOnTabClick}
-        isCustomGroup={false}
         onEditGroup={mockOnEditGroup}
         onDeleteGroup={mockOnDeleteGroup}
       />
@@ -54,7 +53,6 @@ describe('TabGroup', () => {
         title="Empty Group"
         tabs={[]}
         onTabClick={mockOnTabClick}
-        isCustomGroup={false}
         onEditGroup={mockOnEditGroup}
         onDeleteGroup={mockOnDeleteGroup}
       />
@@ -63,13 +61,12 @@ describe('TabGroup', () => {
     expect(screen.queryByText('EMPTY GROUP')).not.toBeInTheDocument();
   });
 
-  test('shows edit and delete buttons for custom groups', () => {
+  test('shows edit and delete buttons for all groups', () => {
     render(
       <TabGroup 
-        title="Custom Group"
+        title="Tab Group"
         tabs={mockTabs}
         onTabClick={mockOnTabClick}
-        isCustomGroup={true}
         onEditGroup={mockOnEditGroup}
         onDeleteGroup={mockOnDeleteGroup}
       />
@@ -79,36 +76,19 @@ describe('TabGroup', () => {
     expect(screen.getByTitle('Delete group')).toBeInTheDocument();
   });
 
-  test('does not show edit and delete buttons for default groups', () => {
-    render(
-      <TabGroup 
-        title="Default Group"
-        tabs={mockTabs}
-        onTabClick={mockOnTabClick}
-        isCustomGroup={false}
-        onEditGroup={mockOnEditGroup}
-        onDeleteGroup={mockOnDeleteGroup}
-      />
-    );
-    
-    expect(screen.queryByTitle('Edit group')).not.toBeInTheDocument();
-    expect(screen.queryByTitle('Delete group')).not.toBeInTheDocument();
-  });
-
   test('calls onEditGroup when edit button is clicked', () => {
     render(
       <TabGroup 
-        title="Custom Group"
+        title="Tab Group"
         tabs={mockTabs}
         onTabClick={mockOnTabClick}
-        isCustomGroup={true}
         onEditGroup={mockOnEditGroup}
         onDeleteGroup={mockOnDeleteGroup}
       />
     );
     
     fireEvent.click(screen.getByTitle('Edit group'));
-    expect(mockOnEditGroup).toHaveBeenCalledWith('Custom Group');
+    expect(mockOnEditGroup).toHaveBeenCalledWith('Tab Group');
   });
 
   test('calls onDeleteGroup when delete button is clicked and confirmed', () => {
@@ -116,18 +96,17 @@ describe('TabGroup', () => {
     
     render(
       <TabGroup 
-        title="Custom Group"
+        title="Tab Group"
         tabs={mockTabs}
         onTabClick={mockOnTabClick}
-        isCustomGroup={true}
         onEditGroup={mockOnEditGroup}
         onDeleteGroup={mockOnDeleteGroup}
       />
     );
     
     fireEvent.click(screen.getByTitle('Delete group'));
-    expect(window.confirm).toHaveBeenCalledWith('Are you sure you want to delete the "Custom Group" group?');
-    expect(mockOnDeleteGroup).toHaveBeenCalledWith('Custom Group');
+    expect(window.confirm).toHaveBeenCalledWith('Are you sure you want to delete the "Tab Group" group?');
+    expect(mockOnDeleteGroup).toHaveBeenCalledWith('Tab Group');
   });
 
   test('does not call onDeleteGroup when delete is not confirmed', () => {
@@ -135,17 +114,16 @@ describe('TabGroup', () => {
     
     render(
       <TabGroup 
-        title="Custom Group"
+        title="Tab Group"
         tabs={mockTabs}
         onTabClick={mockOnTabClick}
-        isCustomGroup={true}
         onEditGroup={mockOnEditGroup}
         onDeleteGroup={mockOnDeleteGroup}
       />
     );
     
     fireEvent.click(screen.getByTitle('Delete group'));
-    expect(window.confirm).toHaveBeenCalledWith('Are you sure you want to delete the "Custom Group" group?');
+    expect(window.confirm).toHaveBeenCalledWith('Are you sure you want to delete the "Tab Group" group?');
     expect(mockOnDeleteGroup).not.toHaveBeenCalled();
   });
 
@@ -155,7 +133,6 @@ describe('TabGroup', () => {
         title="Test Group"
         tabs={mockTabs}
         onTabClick={mockOnTabClick}
-        isCustomGroup={false}
         onEditGroup={mockOnEditGroup}
         onDeleteGroup={mockOnDeleteGroup}
       />
