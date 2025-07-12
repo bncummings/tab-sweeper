@@ -140,10 +140,12 @@ const TabGroup = ({ title, tabs, onTabClick, isCustomGroup, onEditGroup, onDelet
       marginBottom: '24px',
       background: 'transparent', // Let rough.js handle the background
       padding: '24px',
+      paddingRight: '32px', // Extra padding on right to accommodate hover animations
       cursor: 'default',
       transition: STYLES.transitions.default,
       transform: isHovered ? 'translateY(-4px)' : 'translateY(0)',
-      minHeight: isExpanded ? '120px' : 'auto' // Adjust height based on expanded state
+      minHeight: isExpanded ? '120px' : 'auto', // Adjust height based on expanded state
+      overflow: 'visible' // Ensure hover animations are visible
     },
     title: {
       position: 'relative',
@@ -193,8 +195,9 @@ const TabGroup = ({ title, tabs, onTabClick, isCustomGroup, onEditGroup, onDelet
       gap: '10px',
       opacity: isExpanded ? 1 : 0,
       maxHeight: isExpanded ? 'none' : '0',
-      overflow: 'hidden',
-      transition: 'opacity 0.3s ease, max-height 0.3s ease'
+      overflow: 'visible', // Changed from 'hidden' to 'visible' to show hover animations
+      transition: 'opacity 0.3s ease, max-height 0.3s ease',
+      paddingRight: '2px' // Add padding to accommodate the hover animation
     },
     emptyMessage: {
       position: 'relative',

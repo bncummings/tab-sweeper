@@ -61,7 +61,8 @@ const TabItem = ({ tab, onClick }) => {
       background: 'transparent', // Let rough.js handle the background
       cursor: 'pointer',
       transition: STYLES.transitions.default,
-      transform: isHovered ? 'translateX(8px)' : 'translateX(0)',
+      transform: isHovered ? 'translateX(4px)' : 'translateX(0)', // Reduced from 8px to 4px
+      marginRight: '6px', // Add margin to prevent overflow
       minHeight: '60px' // Ensure consistent height
     },
     content: {
