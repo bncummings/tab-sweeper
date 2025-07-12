@@ -130,16 +130,23 @@ const CreateTabGroupModal = ({ isOpen, onClose, onCreateGroup, editingGroup }) =
     setMatchers(newMatchers);
   };
 
-  const toggleMatcherType = (index) => {
+  const toggleMatcherType = (index, newType) => {
     const newMatchers = [...matchers];
-    const currentType = newMatchers[index].type;
     
-    if (currentType === MATCHER_TYPES.PREFIX) {
-      newMatchers[index].type = MATCHER_TYPES.REGEX;
-    } else if (currentType === MATCHER_TYPES.REGEX) {
-      newMatchers[index].type = MATCHER_TYPES.GLOB;
+    if (newType) {
+      // Direct type setting from new UI
+      newMatchers[index].type = newType;
     } else {
-      newMatchers[index].type = MATCHER_TYPES.PREFIX;
+      // Legacy cycling behavior (fallback)
+      const currentType = newMatchers[index].type;
+      
+      if (currentType === MATCHER_TYPES.PREFIX) {
+        newMatchers[index].type = MATCHER_TYPES.REGEX;
+      } else if (currentType === MATCHER_TYPES.REGEX) {
+        newMatchers[index].type = MATCHER_TYPES.GLOB;
+      } else {
+        newMatchers[index].type = MATCHER_TYPES.PREFIX;
+      }
     }
     
     setMatchers(newMatchers);

@@ -1,38 +1,100 @@
 import React from 'react';
 import { MATCHER_TYPES, STYLES } from '../constants.js';
 
-const TypeIcon = ({ type }) => {
+const TypeIcon = ({ type, isSelected }) => {
+  const iconStyle = {
+    filter: isSelected ? 'none' : 'brightness(2) grayscale(100%)',
+    opacity: isSelected ? 1 : 0.3
+  };
+
   switch (type) {
     case MATCHER_TYPES.PREFIX:
       return (
         <img 
           src="/images/file-url.svg" 
-          width="20" 
-          height="20" 
+          width="16" 
+          height="16" 
           alt="URL prefix"
+          style={iconStyle}
         />
       );
     case MATCHER_TYPES.REGEX:
       return (
         <img 
           src="/images/regex.svg" 
-          width="20" 
-          height="20" 
+          width="16" 
+          height="16" 
           alt="Regex pattern"
+          style={iconStyle}
         />
       );
     case MATCHER_TYPES.GLOB:
       return (
         <img 
           src="/images/asterisk.svg" 
-          width="20" 
-          height="20" 
+          width="16" 
+          height="16" 
           alt="Glob pattern"
+          style={iconStyle}
         />
       );
     default:
       return null;
   }
+};
+
+const DeleteIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
+  </svg>
+);
+
+const TypeSelector = ({ currentType, onTypeChange, disabled }) => {
+  const types = [
+    { type: MATCHER_TYPES.PREFIX, label: 'URL prefix' },
+    { type: MATCHER_TYPES.REGEX, label: 'Regex pattern' },
+    { type: MATCHER_TYPES.GLOB, label: 'Glob pattern' }
+  ];
+
+  return (
+    <div style={{
+      position: 'absolute',
+      right: '8px',
+      top: '50%',
+      transform: 'translateY(-50%)',
+      display: 'flex',
+      gap: '4px',
+      alignItems: 'center',
+      padding: '2px 4px',
+      borderRadius: '4px',
+      background: 'rgba(255, 255, 255, 0.9)'
+    }}>
+      {types.map(({ type, label }) => (
+        <button
+          key={type}
+          type="button"
+          onClick={() => onTypeChange(type)}
+          disabled={disabled}
+          title={label}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '4px',
+            border: 'none',
+            borderRadius: '3px',
+            cursor: disabled ? 'default' : 'pointer',
+            background: 'transparent',
+            transition: STYLES.transitions.default,
+            width: '24px',
+            height: '24px'
+          }}
+        >
+          <TypeIcon type={type} isSelected={currentType === type} />
+        </button>
+      ))}
+    </div>
+  );
 };
 
 const getPlaceholder = (type) => {
@@ -81,7 +143,7 @@ const MatcherInput = ({
       flex: 1
     },
     input: {
-      padding: '12px 50px 12px 16px',
+      padding: '12px 90px 12px 16px',
       border: `2px solid ${STYLES.colors.border}`,
       borderRadius: '8px',
       fontSize: '16px',
@@ -90,30 +152,19 @@ const MatcherInput = ({
       width: '100%',
       boxSizing: 'border-box'
     },
-    toggleButton: {
-      position: 'absolute',
-      right: '8px',
-      top: '50%',
-      transform: 'translateY(-50%)',
-      background: 'none',
-      border: 'none',
-      cursor: 'pointer',
-      padding: '4px',
-      borderRadius: '4px',
-      color: STYLES.colors.primary,
-      transition: STYLES.transitions.default
-    },
     removeButton: {
-      padding: '8px 12px',
-      borderRadius: '6px',
-      fontSize: '14px',
-      fontWeight: '600',
+      padding: '8px',
+      borderRadius: '8px',
       cursor: 'pointer',
       transition: STYLES.transitions.default,
-      border: 'none',
+      border: 'none', //`2px solid ${STYLES.colors.dangerBdr}`,
       background: STYLES.colors.dangerBg,
       color: STYLES.colors.danger,
-      minWidth: 'auto'
+      width: '46px',
+      height: '46px',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center'
     }
   };
 
@@ -125,27 +176,23 @@ const MatcherInput = ({
     e.currentTarget.style.borderColor = STYLES.colors.border;
   };
 
-  const handleToggleMouseEnter = (e) => {
-    if (!disabled) {
-      e.currentTarget.style.background = '#f0f4ff';
-    }
-  };
-
-  const handleToggleMouseLeave = (e) => {
-    if (!disabled) {
-      e.currentTarget.style.background = 'none';
-    }
-  };
-
   const handleRemoveMouseEnter = (e) => {
     if (!disabled && canRemove) {
-      e.currentTarget.style.background = '#fed7d7';
+      e.currentTarget.style.background = '#f56565';
+      e.currentTarget.style.color = 'white';
     }
   };
 
   const handleRemoveMouseLeave = (e) => {
     if (!disabled) {
       e.currentTarget.style.background = STYLES.colors.dangerBg;
+      e.currentTarget.style.color = STYLES.colors.danger;
+    }
+  };
+
+  const handleTypeChange = (newType) => {
+    if (!disabled) {
+      onTypeToggle(index, newType);
     }
   };
 
@@ -162,17 +209,11 @@ const MatcherInput = ({
           onBlur={handleInputBlur}
           disabled={disabled}
         />
-        <button
-          type="button"
-          onClick={() => onTypeToggle(index)}
-          style={styles.toggleButton}
+        <TypeSelector 
+          currentType={matcher.type}
+          onTypeChange={handleTypeChange}
           disabled={disabled}
-          title={getTooltip(matcher.type)}
-          onMouseEnter={handleToggleMouseEnter}
-          onMouseLeave={handleToggleMouseLeave}
-        >
-          <TypeIcon type={matcher.type} />
-        </button>
+        />
       </div>
       <button
         type="button"
@@ -181,8 +222,9 @@ const MatcherInput = ({
         disabled={disabled || !canRemove}
         onMouseEnter={handleRemoveMouseEnter}
         onMouseLeave={handleRemoveMouseLeave}
+        title="Remove matcher"
       >
-        Remove
+        <DeleteIcon />
       </button>
     </div>
   );

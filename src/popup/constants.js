@@ -16,6 +16,7 @@ export const STYLES = {
     success: '#25543e',
     successBg: '#c6f6d5',
     danger: '#c53030',
+    dangerBdr: '#900f0fff',
     dangerBg: '#fed7d7'
   },
   transitions: {
