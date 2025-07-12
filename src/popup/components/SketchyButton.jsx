@@ -11,6 +11,7 @@ const SketchyButton = ({
   title,
   type = 'button',
   className = '',
+  strokeColor = null,
   ...props 
 }) => {
   const svgRef = useRef(null);
@@ -70,9 +71,12 @@ const SketchyButton = ({
         const currentVariant = variants[variant];
         const currentState = isHovered ? currentVariant.hover : currentVariant.normal;
         
+        // Use custom stroke color if provided, otherwise use variant stroke
+        const finalStrokeColor = strokeColor || currentState.stroke;
+        
         // Draw sketchy rectangle
         const sketchyRect = rc.rectangle(2, 2, width - 4, height - 4, {
-          stroke: currentState.stroke,
+          stroke: finalStrokeColor,
           strokeWidth: isHovered ? 2.5 : 2,
           fill: currentState.fill,
           fillStyle: 'solid',
@@ -84,7 +88,7 @@ const SketchyButton = ({
         svg.appendChild(sketchyRect);
       }
     }
-  }, [isHovered, variant, disabled, buttonId]);
+  }, [isHovered, variant, disabled, buttonId, strokeColor]);
 
   const currentVariant = variants[variant];
   const currentSize = sizes[size];

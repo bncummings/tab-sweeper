@@ -61,7 +61,7 @@ const TabGroup = ({ title, tabs, onTabClick, isCustomGroup, onEditGroup, onDelet
       if (width > 0 && height > 0) {
         // Draw sketchy rectangle for the group container
         const sketchyRect = rc.rectangle(3, 3, width - 6, height - 6, {
-          stroke: isHovered ? STYLES.colors.primary : 'rgba(255, 255, 255, 0.6)',
+          stroke: isHovered ? STYLES.colors.primary : 'rgba(0,0,0,0.5)',//'rgba(255, 255, 255, 0.6)',
           strokeWidth: isHovered ? 2.5 : 2,
           fill: 'rgba(255, 255, 255, 0.95)',
           fillStyle: 'solid',

@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import TabGroup from './components/TabGroup';
 import CreateTabGroupModal from './components/CreateTabGroupModal';
 import SketchyButton from './components/SketchyButton';
+import RoughHeader from './components/RoughHeader';
+import Logo from './components/Logo';
 import { useTabGroups } from './hooks/useTabGroups';
 import { STYLES } from './constants.js';
 
@@ -80,15 +82,12 @@ const App = () => {
       width: '420px',
       minHeight: '550px',
       fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif',
-      background: `linear-gradient(135deg, ${STYLES.colors.primary} 0%, ${STYLES.colors.secondary} 100%)`,
+      background: '#ffffff',
       color: '#333'
     },
     header: {
-      background: 'rgba(255, 255, 255, 0.15)',
-      backdropFilter: 'blur(15px)',
       padding: '24px',
       textAlign: 'center',
-      borderBottom: '1px solid rgba(255, 255, 255, 0.25)',
       position: 'relative'
     },
     headerContent: {
@@ -99,7 +98,7 @@ const App = () => {
     },
     title: {
       margin: 0,
-      color: STYLES.colors.white,
+      color: STYLES.colors.text,
       fontSize: '28px',
       fontWeight: '300',
       textShadow: '0 3px 6px rgba(0, 0, 0, 0.4)',
@@ -114,7 +113,8 @@ const App = () => {
     main: {
       flex: 1,
       padding: '24px',
-      overflowY: 'auto'
+      overflowY: 'auto',
+      background: '#ffffff'
     },
     tabGroupsContainer: {
       marginBottom: '24px'
@@ -122,24 +122,17 @@ const App = () => {
     loadingMessage: {
       textAlign: 'center',
       padding: '40px',
-      color: STYLES.colors.white
+      color: STYLES.colors.text
     }
   };
 
-  const handlePlusButtonHover = (e, isEntering) => {
-    // Removed - now handled by SketchyButton
-  };
-
-  const handleGroupAllButtonHover = (e, isEntering) => {
-    // Removed - now handled by SketchyButton
-  };
 
   if (isLoading) {
     return (
       <div style={styles.app}>
-        <header style={styles.header}>
-          <h1 style={styles.title}>~My Tabs~</h1>
-        </header>
+        <RoughHeader style={styles.header}>
+          <Logo color={STYLES.colors.white} width={140} height={45} />
+        </RoughHeader>
         <main style={styles.main}>
           <div style={styles.loadingMessage}>Loading tabs...</div>
         </main>
@@ -150,9 +143,9 @@ const App = () => {
   if (error) {
     return (
       <div style={styles.app}>
-        <header style={styles.header}>
-          <h1 style={styles.title}>~My Tabs~</h1>
-        </header>
+        <RoughHeader style={styles.header}>
+          <Logo color={STYLES.colors.white} width={140} height={45} />
+        </RoughHeader>
         <main style={styles.main}>
           <div style={styles.loadingMessage}>
             <p>Error: {error}</p>
@@ -165,26 +158,25 @@ const App = () => {
 
   return (
     <div style={styles.app}>
-      <header style={styles.header}>
+      <RoughHeader style={styles.header}>
         <div style={styles.headerContent}>
-          <h1 style={styles.title}>~My Tabs~</h1>
+          <Logo color={STYLES.colors.white} width={140} height={45} />
           
           <div style={styles.buttonGroup}>
             <SketchyButton
-              variant="primary"
+              variant="secondary"
               onClick={() => handleGroupTabs()}
               disabled={isGrouping}
               title="Group all tabs"
               size="medium"
+              strokeColor="rgba(0,0,0,0.5)"
               style={{ 
-                background: 'rgba(255, 255, 255, 0.2)',
-                backdropFilter: 'blur(10px)',
-                border: '2px solid rgba(255, 255, 255, 0.3)',
-                color: STYLES.colors.white,
+                color: STYLES.colors.primary,
+                fontSize: '18px',
+                fontWeight: '800',
                 textTransform: 'uppercase',
-                letterSpacing: '0.5px',
-                padding: '12px 20px',
-                fontSize: '16px'
+                letterSpacing: '1px',
+                padding: '12px 20px'
               }}
             >
               {isGrouping ? 'Grouping...' : 'Group All'}
@@ -195,10 +187,13 @@ const App = () => {
               onClick={() => setIsModalOpen(true)}
               title="Create new tab group"
               size="medium"
+              strokeColor="rgba(0,0,0,0.5)"
               style={{ 
-                color: STYLES.colors.text,
-                fontSize: '24px',
-                fontWeight: '300',
+                color: STYLES.colors.primary,
+                fontSize: '22px',
+                fontWeight: '800',
+                textTransform: 'uppercase',
+                letterSpacing: '1px',
                 padding: '12px 20px'
               }}
             >
@@ -206,7 +201,7 @@ const App = () => {
             </SketchyButton>
           </div>
         </div>
-      </header>
+      </RoughHeader>
       
       <main style={styles.main}>
         <div style={styles.tabGroupsContainer}>
