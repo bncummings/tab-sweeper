@@ -169,7 +169,7 @@ const App = () => {
               disabled={isGrouping}
               title="Group all tabs"
               size="medium"
-              strokeColor="rgba(0,0,0,0.5)"
+              strokeColor="rgba(120, 120, 120, 1)"
               style={{ 
                 color: STYLES.colors.primary,
                 fontSize: '18px',
@@ -187,7 +187,7 @@ const App = () => {
               onClick={() => setIsModalOpen(true)}
               title="Create new tab group"
               size="medium"
-              strokeColor="rgba(0,0,0,0.5)"
+              strokeColor="rgba(120, 120, 120, 1)"
               style={{ 
                 color: STYLES.colors.primary,
                 fontSize: '22px',

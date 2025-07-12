@@ -16,6 +16,62 @@ const DeleteIcon = () => (
   </svg>
 );
 
+const ChevronIcon = ({ isExpanded }) => {
+  const svgRef = useRef(null);
+  const [iconId] = useState(Math.random().toString(36).substr(2, 9));
+
+  useEffect(() => {
+    if (svgRef.current) {
+      const svg = svgRef.current;
+      svg.innerHTML = '';
+      
+      const rc = rough.svg(svg);
+      
+      // Draw a sketchy chevron/arrow pointing down
+      const size = 12;
+      const centerX = 12;
+      const centerY = 12;
+      
+      if (isExpanded) {
+        // Up arrow (expanded state)
+        const path = rc.path(`M ${centerX - size/2} ${centerY + size/4} L ${centerX} ${centerY - size/4} L ${centerX + size/2} ${centerY + size/4}`, {
+          stroke: 'currentColor',
+          strokeWidth: 2,
+          fill: 'none',
+          roughness: 1.2,
+          bowing: 0.8,
+          seed: iconId.split('').reduce((a, b) => a + b.charCodeAt(0), 0)
+        });
+        svg.appendChild(path);
+      } else {
+        // Down arrow (collapsed state)
+        const path = rc.path(`M ${centerX - size/2} ${centerY - size/4} L ${centerX} ${centerY + size/4} L ${centerX + size/2} ${centerY - size/4}`, {
+          stroke: 'currentColor',
+          strokeWidth: 2,
+          fill: 'none',
+          roughness: 1.2,
+          bowing: 0.8,
+          seed: iconId.split('').reduce((a, b) => a + b.charCodeAt(0), 0)
+        });
+        svg.appendChild(path);
+      }
+    }
+  }, [isExpanded, iconId]);
+
+  return (
+    <svg 
+      ref={svgRef}
+      width="24" 
+      height="24" 
+      viewBox="0 0 24 24" 
+      style={{ 
+        transition: 'all 0.2s ease',
+        color: 'inherit'
+      }}
+    />
+  );
+};
+
 const ActionButton = ({ variant, onClick, title, children, disabled }) => (
   <SketchyButton
     variant={variant}
@@ -33,6 +89,7 @@ const TabGroup = ({ title, tabs, onTabClick, isCustomGroup, onEditGroup, onDelet
   const svgRef = useRef(null);
   const containerRef = useRef(null);
   const [isHovered, setIsHovered] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(true);
   const [groupId] = useState(Math.random().toString(36).substr(2, 9)); // Consistent seed
 
   useEffect(() => {
@@ -73,7 +130,7 @@ const TabGroup = ({ title, tabs, onTabClick, isCustomGroup, onEditGroup, onDelet
         svg.appendChild(sketchyRect);
       }
     }
-  }, [isHovered, groupId]);
+  }, [isHovered, groupId, isExpanded]);
 
   if (tabs.length === 0) return null;
 
@@ -86,7 +143,7 @@ const TabGroup = ({ title, tabs, onTabClick, isCustomGroup, onEditGroup, onDelet
       cursor: 'default',
       transition: STYLES.transitions.default,
       transform: isHovered ? 'translateY(-4px)' : 'translateY(0)',
-      minHeight: '120px' // Ensure consistent height for drawing
+      minHeight: isExpanded ? '120px' : 'auto' // Adjust height based on expanded state
     },
     title: {
       position: 'relative',
@@ -107,7 +164,8 @@ const TabGroup = ({ title, tabs, onTabClick, isCustomGroup, onEditGroup, onDelet
       display: 'flex',
       justifyContent: 'space-between',
       alignItems: 'center',
-      marginBottom: '18px'
+      marginBottom: isExpanded ? '18px' : '0',
+      cursor: 'pointer'
     },
     titleText: {
       fontSize: '22px',
@@ -117,7 +175,10 @@ const TabGroup = ({ title, tabs, onTabClick, isCustomGroup, onEditGroup, onDelet
       paddingBottom: '14px',
       textTransform: 'uppercase',
       letterSpacing: '1px',
-      textAlign: 'left'
+      textAlign: 'left',
+      display: 'flex',
+      alignItems: 'center',
+      gap: '12px'
     },
     actions: {
       display: 'flex',
@@ -127,9 +188,13 @@ const TabGroup = ({ title, tabs, onTabClick, isCustomGroup, onEditGroup, onDelet
     tabList: {
       position: 'relative',
       zIndex: 1,
-      display: 'flex',
+      display: isExpanded ? 'flex' : 'none',
       flexDirection: 'column',
-      gap: '10px'
+      gap: '10px',
+      opacity: isExpanded ? 1 : 0,
+      maxHeight: isExpanded ? 'none' : '0',
+      overflow: 'hidden',
+      transition: 'opacity 0.3s ease, max-height 0.3s ease'
     },
     emptyMessage: {
       position: 'relative',
@@ -176,6 +241,10 @@ const TabGroup = ({ title, tabs, onTabClick, isCustomGroup, onEditGroup, onDelet
     // Removed - now handled by SketchyButton
   };
 
+  const toggleExpanded = () => {
+    setIsExpanded(!isExpanded);
+  };
+
   return (
     <div 
       ref={containerRef}
@@ -185,9 +254,12 @@ const TabGroup = ({ title, tabs, onTabClick, isCustomGroup, onEditGroup, onDelet
     >
       <svg ref={svgRef} style={styles.svg} />
       {isCustomGroup ? (
-        <div style={styles.titleWithActions}>
-          <h2 style={styles.titleText}>{title}</h2>
-          <div style={styles.actions}>
+        <div style={styles.titleWithActions} onClick={toggleExpanded}>
+          <h2 style={styles.titleText}>
+            <ChevronIcon isExpanded={isExpanded} />
+            {title}
+          </h2>
+          <div style={styles.actions} onClick={(e) => e.stopPropagation()}>
             <SketchyButton
               variant="primary"
               onClick={() => onGroupTabs(title)}
@@ -196,7 +268,7 @@ const TabGroup = ({ title, tabs, onTabClick, isCustomGroup, onEditGroup, onDelet
               size="small"
               style={{ fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.5px', minWidth: '80px' }}
             >
-              {isGrouping ? 'Grouping...' : 'Group This'}
+              {isGrouping ? 'Grouping...' : 'Group'}
             </SketchyButton>
             <ActionButton
               variant="secondary"
@@ -215,9 +287,12 @@ const TabGroup = ({ title, tabs, onTabClick, isCustomGroup, onEditGroup, onDelet
           </div>
         </div>
       ) : (
-        <div style={styles.titleWithActions}>
-          <h2 style={styles.titleText}>{title}</h2>
-          <div style={styles.actions}>
+        <div style={styles.titleWithActions} onClick={toggleExpanded}>
+          <h2 style={styles.titleText}>
+            <ChevronIcon isExpanded={isExpanded} />
+            {title}
+          </h2>
+          <div style={styles.actions} onClick={(e) => e.stopPropagation()}>
             <SketchyButton
               variant="primary"
               onClick={() => onGroupTabs(title)}
@@ -226,7 +301,7 @@ const TabGroup = ({ title, tabs, onTabClick, isCustomGroup, onEditGroup, onDelet
               size="small"
               style={{ fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.5px', minWidth: '80px' }}
             >
-              {isGrouping ? 'Grouping...' : 'Group This'}
+              {isGrouping ? 'Grouping...' : 'Group'}
             </SketchyButton>
           </div>
         </div>
