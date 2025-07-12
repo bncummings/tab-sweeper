@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import rough from 'roughjs';
 import MatcherInput from './MatcherInput';
 import SketchyButton from './SketchyButton';
 import SketchyInput from './SketchyInput';
@@ -81,6 +82,11 @@ const useModalForm = (editingGroup, onClose) => {
 };
 
 const CreateTabGroupModal = ({ isOpen, onClose, onCreateGroup, editingGroup }) => {
+  const svgRef = useRef(null);
+  const modalRef = useRef(null);
+  const [isHovered, setIsHovered] = useState(false);
+  const [modalId] = useState(Math.random().toString(36).substr(2, 9));
+  
   const {
     groupName,
     setGroupName,
@@ -91,6 +97,37 @@ const CreateTabGroupModal = ({ isOpen, onClose, onCreateGroup, editingGroup }) =
     validateForm,
     handleClose
   } = useModalForm(editingGroup, onClose);
+
+  useEffect(() => {
+    if (svgRef.current && modalRef.current && isOpen) {
+      const svg = svgRef.current;
+      const modal = modalRef.current;
+      
+      // Clear previous drawings
+      svg.innerHTML = '';
+      
+      const rc = rough.svg(svg);
+      
+      // Get actual dimensions for drawing
+      const width = modal.offsetWidth;
+      const height = modal.offsetHeight;
+      
+      if (width > 0 && height > 0) {
+        // Draw sketchy rectangle for the modal
+        const sketchyRect = rc.rectangle(3, 3, width - 6, height - 6, {
+          stroke: isHovered ? STYLES.colors.primary : 'rgba(0,0,0,0.3)',
+          strokeWidth: 2.5,
+          fill: 'rgba(255, 255, 255, 0.98)',
+          fillStyle: 'solid',
+          roughness: 1.4,
+          bowing: 1.1,
+          seed: modalId.split('').reduce((a, b) => a + b.charCodeAt(0), 0)
+        });
+        
+        svg.appendChild(sketchyRect);
+      }
+    }
+  }, [isOpen, isHovered, modalId]);
 
   if (!isOpen) return null;
 
@@ -169,17 +206,19 @@ const CreateTabGroupModal = ({ isOpen, onClose, onCreateGroup, editingGroup }) =
       backdropFilter: 'blur(8px)'
     },
     modal: {
-      background: STYLES.colors.white,
+      position: 'relative',
+      background: 'transparent', // Let rough.js handle the background
       borderRadius: '16px',
       padding: '32px',
       width: '90%',
       maxWidth: '500px',
       maxHeight: '80vh',
       overflowY: 'auto',
-      boxShadow: '0 25px 50px rgba(0, 0, 0, 0.3)',
-      position: 'relative'
+      boxShadow: '0 25px 50px rgba(0, 0, 0, 0.3)'
     },
     title: {
+      position: 'relative',
+      zIndex: 1,
       margin: '0 0 24px 0',
       fontSize: '24px',
       fontWeight: '700',
@@ -187,16 +226,22 @@ const CreateTabGroupModal = ({ isOpen, onClose, onCreateGroup, editingGroup }) =
       textAlign: 'center'
     },
     form: {
+      position: 'relative',
+      zIndex: 1,
       display: 'flex',
       flexDirection: 'column',
       gap: '24px'
     },
     field: {
+      position: 'relative',
+      zIndex: 1,
       display: 'flex',
       flexDirection: 'column',
       gap: '8px'
     },
     label: {
+      position: 'relative',
+      zIndex: 1,
       fontSize: '14px',
       fontWeight: '600',
       color: STYLES.colors.text
@@ -205,15 +250,21 @@ const CreateTabGroupModal = ({ isOpen, onClose, onCreateGroup, editingGroup }) =
       // Removed - now handled by SketchyInput
     },
     matchersContainer: {
+      position: 'relative',
+      zIndex: 1,
       display: 'flex',
       flexDirection: 'column',
       gap: '12px'
     },
     helpText: {
+      position: 'relative',
+      zIndex: 1,
       color: STYLES.colors.muted,
       fontSize: '12px'
     },
     buttonRow: {
+      position: 'relative',
+      zIndex: 1,
       display: 'flex',
       gap: '12px',
       justifyContent: 'flex-end',
@@ -223,6 +274,7 @@ const CreateTabGroupModal = ({ isOpen, onClose, onCreateGroup, editingGroup }) =
       position: 'absolute',
       top: '16px',
       right: '16px',
+      zIndex: 2,
       background: 'none',
       border: 'none',
       fontSize: '24px',
@@ -230,6 +282,15 @@ const CreateTabGroupModal = ({ isOpen, onClose, onCreateGroup, editingGroup }) =
       color: '#a0aec0',
       padding: '4px',
       borderRadius: '4px'
+    },
+    svg: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      width: '100%',
+      height: '100%',
+      pointerEvents: 'none',
+      zIndex: 0
     }
   };
 
@@ -241,9 +302,23 @@ const CreateTabGroupModal = ({ isOpen, onClose, onCreateGroup, editingGroup }) =
     // Removed - now handled by SketchyInput
   };
 
+  const handleModalMouseEnter = () => {
+    setIsHovered(true);
+  };
+
+  const handleModalMouseLeave = () => {
+    setIsHovered(false);
+  };
+
   return (
     <div style={styles.overlay}>
-      <div style={styles.modal}>
+      <div 
+        ref={modalRef}
+        style={styles.modal}
+        onMouseEnter={handleModalMouseEnter}
+        onMouseLeave={handleModalMouseLeave}
+      >
+        <svg ref={svgRef} style={styles.svg} />
         <button 
           style={styles.closeButton}
           onClick={handleClose}
