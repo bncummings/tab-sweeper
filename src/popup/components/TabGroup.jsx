@@ -1,5 +1,7 @@
-import React from 'react';
+import React, { useRef, useEffect, useState } from 'react';
+import rough from 'roughjs';
 import TabItem from './TabItem';
+import SketchyButton from './SketchyButton';
 import { STYLES } from '../constants.js';
 
 const EditIcon = () => (
@@ -14,33 +16,81 @@ const DeleteIcon = () => (
   </svg>
 );
 
-const ActionButton = ({ style, onClick, onMouseEnter, onMouseLeave, title, children }) => (
-  <button
-    style={style}
+const ActionButton = ({ variant, onClick, title, children, disabled }) => (
+  <SketchyButton
+    variant={variant}
     onClick={onClick}
-    onMouseEnter={onMouseEnter}
-    onMouseLeave={onMouseLeave}
     title={title}
+    size="small"
+    disabled={disabled}
+    style={{ width: '32px', height: '32px', padding: '8px' }}
   >
     {children}
-  </button>
+  </SketchyButton>
 );
 
 const TabGroup = ({ title, tabs, onTabClick, isCustomGroup, onEditGroup, onDeleteGroup, onGroupTabs, isGrouping }) => {
+  const svgRef = useRef(null);
+  const containerRef = useRef(null);
+  const [isHovered, setIsHovered] = useState(false);
+  const [groupId] = useState(Math.random().toString(36).substr(2, 9)); // Consistent seed
+
+  useEffect(() => {
+    if (svgRef.current && containerRef.current) {
+      const svg = svgRef.current;
+      const container = containerRef.current;
+      
+      // Clear previous drawings
+      svg.innerHTML = '';
+      
+      // Set SVG dimensions to match container
+      svg.setAttribute('width', '100%');
+      svg.setAttribute('height', '100%');
+      svg.style.position = 'absolute';
+      svg.style.top = '0';
+      svg.style.left = '0';
+      svg.style.pointerEvents = 'none';
+      svg.style.zIndex = '0';
+      
+      const rc = rough.svg(svg);
+      
+      // Get actual dimensions for drawing
+      const width = container.offsetWidth;
+      const height = container.offsetHeight;
+      
+      if (width > 0 && height > 0) {
+        // Draw sketchy rectangle for the group container
+        const sketchyRect = rc.rectangle(3, 3, width - 6, height - 6, {
+          stroke: isHovered ? STYLES.colors.primary : 'rgba(255, 255, 255, 0.6)',
+          strokeWidth: isHovered ? 2.5 : 2,
+          fill: 'rgba(255, 255, 255, 0.95)',
+          fillStyle: 'solid',
+          roughness: 1.3,
+          bowing: 0.9,
+          seed: groupId.split('').reduce((a, b) => a + b.charCodeAt(0), 0) // Consistent seed
+        });
+        
+        svg.appendChild(sketchyRect);
+      }
+    }
+  }, [isHovered, groupId]);
+
   if (tabs.length === 0) return null;
 
   const styles = {
     container: {
+      position: 'relative',
       marginBottom: '24px',
-      background: STYLES.colors.white,
-      borderRadius: '18px',
+      background: 'transparent', // Let rough.js handle the background
       padding: '24px',
-      boxShadow: STYLES.shadows.card,
-      border: '2px solid rgba(255, 255, 255, 0.9)',
+      cursor: 'default',
       transition: STYLES.transitions.default,
-      cursor: 'default'
+      transform: isHovered ? 'translateY(-4px)' : 'translateY(0)',
+      minHeight: '120px' // Ensure consistent height for drawing
     },
     title: {
+      position: 'relative',
+      zIndex: 1,
       margin: '0 0 18px 0',
       fontSize: '22px',
       fontWeight: '800',
@@ -52,6 +102,8 @@ const TabGroup = ({ title, tabs, onTabClick, isCustomGroup, onEditGroup, onDelet
       letterSpacing: '1px'
     },
     titleWithActions: {
+      position: 'relative',
+      zIndex: 1,
       display: 'flex',
       justifyContent: 'space-between',
       alignItems: 'center',
@@ -72,50 +124,33 @@ const TabGroup = ({ title, tabs, onTabClick, isCustomGroup, onEditGroup, onDelet
       gap: '8px',
       alignItems: 'center'
     },
-    actionButton: {
-      padding: '8px',
-      borderRadius: '6px',
-      border: 'none',
-      cursor: 'pointer',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      transition: STYLES.transitions.default,
-      width: '32px',
-      height: '32px'
-    },
-    editButton: {
-      background: STYLES.colors.border,
-      color: '#4a5568'
-    },
-    deleteButton: {
-      background: STYLES.colors.dangerBg,
-      color: STYLES.colors.danger
-    },
-    groupButton: {
-      background: STYLES.colors.primary,
-      color: 'white',
-      padding: '8px 12px',
-      borderRadius: '6px',
-      border: 'none',
-      cursor: 'pointer',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      transition: STYLES.transitions.default,
-      fontSize: '12px',
-      fontWeight: '600',
-      textTransform: 'uppercase',
-      letterSpacing: '0.5px',
-      opacity: isGrouping ? 0.6 : 1,
-      minWidth: '80px'
-    },
     tabList: {
+      position: 'relative',
+      zIndex: 1,
       display: 'flex',
       flexDirection: 'column',
       gap: '10px'
     },
     emptyMessage: {
+      position: 'relative',
+      zIndex: 1,
+      textAlign: 'center',
+      padding: '20px',
+      color: STYLES.colors.muted,
+      fontStyle: 'italic'
+    },
+    svg: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      width: '100%',
+      height: '100%',
+      pointerEvents: 'none',
+      zIndex: 0
+    },
+    emptyMessage: {
+      position: 'relative',
+      zIndex: 1,
       textAlign: 'center',
       padding: '20px',
       color: STYLES.colors.muted,
@@ -123,18 +158,12 @@ const TabGroup = ({ title, tabs, onTabClick, isCustomGroup, onEditGroup, onDelet
     }
   };
 
-  const handleContainerMouseEnter = (e) => {
-    Object.assign(e.currentTarget.style, {
-      transform: 'translateY(-4px)',
-      boxShadow: STYLES.shadows.cardHover
-    });
+  const handleContainerMouseEnter = () => {
+    setIsHovered(true);
   };
 
-  const handleContainerMouseLeave = (e) => {
-    Object.assign(e.currentTarget.style, {
-      transform: 'translateY(0)',
-      boxShadow: STYLES.shadows.card
-    });
+  const handleContainerMouseLeave = () => {
+    setIsHovered(false);
   };
 
   const handleDeleteClick = () => {
@@ -144,45 +173,41 @@ const TabGroup = ({ title, tabs, onTabClick, isCustomGroup, onEditGroup, onDelet
   };
 
   const handleGroupButtonHover = (e, isHover) => {
-    if (!isGrouping) {
-      e.target.style.backgroundColor = isHover ? '#2563eb' : STYLES.colors.primary;
-    }
+    // Removed - now handled by SketchyButton
   };
 
   return (
     <div 
+      ref={containerRef}
       style={styles.container}
       onMouseEnter={handleContainerMouseEnter}
       onMouseLeave={handleContainerMouseLeave}
     >
+      <svg ref={svgRef} style={styles.svg} />
       {isCustomGroup ? (
         <div style={styles.titleWithActions}>
           <h2 style={styles.titleText}>{title}</h2>
           <div style={styles.actions}>
-            <button
-              style={styles.groupButton}
+            <SketchyButton
+              variant="primary"
               onClick={() => onGroupTabs(title)}
               disabled={isGrouping}
-              onMouseEnter={(e) => handleGroupButtonHover(e, true)}
-              onMouseLeave={(e) => handleGroupButtonHover(e, false)}
               title={`Group tabs matching "${title}" pattern`}
+              size="small"
+              style={{ fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.5px', minWidth: '80px' }}
             >
               {isGrouping ? 'Grouping...' : 'Group This'}
-            </button>
+            </SketchyButton>
             <ActionButton
-              style={{ ...styles.actionButton, ...styles.editButton }}
+              variant="secondary"
               onClick={() => onEditGroup(title)}
-              onMouseEnter={(e) => e.currentTarget.style.background = '#cbd5e0'}
-              onMouseLeave={(e) => e.currentTarget.style.background = STYLES.colors.border}
               title="Edit group"
             >
               <EditIcon />
             </ActionButton>
             <ActionButton
-              style={{ ...styles.actionButton, ...styles.deleteButton }}
+              variant="danger"
               onClick={handleDeleteClick}
-              onMouseEnter={(e) => e.currentTarget.style.background = '#f56565'}
-              onMouseLeave={(e) => e.currentTarget.style.background = STYLES.colors.dangerBg}
               title="Delete group"
             >
               <DeleteIcon />
@@ -193,16 +218,16 @@ const TabGroup = ({ title, tabs, onTabClick, isCustomGroup, onEditGroup, onDelet
         <div style={styles.titleWithActions}>
           <h2 style={styles.titleText}>{title}</h2>
           <div style={styles.actions}>
-            <button
-              style={styles.groupButton}
+            <SketchyButton
+              variant="primary"
               onClick={() => onGroupTabs(title)}
               disabled={isGrouping}
-              onMouseEnter={(e) => handleGroupButtonHover(e, true)}
-              onMouseLeave={(e) => handleGroupButtonHover(e, false)}
               title={`Group tabs for "${title}"`}
+              size="small"
+              style={{ fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.5px', minWidth: '80px' }}
             >
               {isGrouping ? 'Grouping...' : 'Group This'}
-            </button>
+            </SketchyButton>
           </div>
         </div>
       )}

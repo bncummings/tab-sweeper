@@ -4,7 +4,8 @@
   "description": "A Chrome extension for grouping documentation tabs",
   "dependencies": {
     "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "react-dom": "^18.2.0",
+    "roughjs": "^4.6.6"
   },
   "devDependencies": {
     "@babel/core": "^7.22.0",

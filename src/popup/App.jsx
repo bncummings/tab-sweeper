@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import TabGroup from './components/TabGroup';
 import CreateTabGroupModal from './components/CreateTabGroupModal';
+import SketchyButton from './components/SketchyButton';
 import { useTabGroups } from './hooks/useTabGroups';
 import { STYLES } from './constants.js';
 
@@ -110,36 +111,6 @@ const App = () => {
       alignItems: 'center',
       gap: '12px'
     },
-    plusButton: {
-      width: '40px',
-      height: '40px',
-      borderRadius: '50%',
-      background: 'rgba(255, 255, 255, 0.2)',
-      border: '2px solid rgba(255, 255, 255, 0.3)',
-      color: STYLES.colors.white,
-      fontSize: '24px',
-      fontWeight: '300',
-      cursor: 'pointer',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      transition: STYLES.transitions.default,
-      backdropFilter: 'blur(10px)'
-    },
-    groupAllButton: {
-      background: 'rgba(255, 255, 255, 0.2)',
-      border: '2px solid rgba(255, 255, 255, 0.3)',
-      color: STYLES.colors.white,
-      borderRadius: '20px',
-      padding: '8px 16px',
-      fontSize: '14px',
-      fontWeight: '600',
-      cursor: 'pointer',
-      transition: STYLES.transitions.default,
-      backdropFilter: 'blur(10px)',
-      textTransform: 'uppercase',
-      letterSpacing: '0.5px'
-    },
     main: {
       flex: 1,
       padding: '24px',
@@ -156,35 +127,11 @@ const App = () => {
   };
 
   const handlePlusButtonHover = (e, isEntering) => {
-    if (isEntering) {
-      Object.assign(e.currentTarget.style, {
-        background: 'rgba(255, 255, 255, 0.3)',
-        transform: 'scale(1.1)',
-        boxShadow: '0 5px 15px rgba(255, 255, 255, 0.3)'
-      });
-    } else {
-      Object.assign(e.currentTarget.style, {
-        background: 'rgba(255, 255, 255, 0.2)',
-        transform: 'scale(1)',
-        boxShadow: 'none'
-      });
-    }
+    // Removed - now handled by SketchyButton
   };
 
   const handleGroupAllButtonHover = (e, isEntering) => {
-    if (!isGrouping && isEntering) {
-      Object.assign(e.currentTarget.style, {
-        background: 'rgba(255, 255, 255, 0.3)',
-        transform: 'translateY(-2px)',
-        boxShadow: '0 5px 15px rgba(255, 255, 255, 0.3)'
-      });
-    } else if (!isGrouping) {
-      Object.assign(e.currentTarget.style, {
-        background: 'rgba(255, 255, 255, 0.2)',
-        transform: 'translateY(0)',
-        boxShadow: 'none'
-      });
-    }
+    // Removed - now handled by SketchyButton
   };
 
   if (isLoading) {
@@ -223,26 +170,39 @@ const App = () => {
           <h1 style={styles.title}>~My Tabs~</h1>
           
           <div style={styles.buttonGroup}>
-            <button
-              style={styles.groupAllButton}
+            <SketchyButton
+              variant="primary"
               onClick={() => handleGroupTabs()}
               disabled={isGrouping}
-              onMouseEnter={(e) => handleGroupAllButtonHover(e, true)}
-              onMouseLeave={(e) => handleGroupAllButtonHover(e, false)}
               title="Group all tabs"
+              size="small"
+              style={{ 
+                background: 'rgba(255, 255, 255, 0.2)',
+                backdropFilter: 'blur(10px)',
+                border: '2px solid rgba(255, 255, 255, 0.3)',
+                color: STYLES.colors.white,
+                textTransform: 'uppercase',
+                letterSpacing: '0.5px'
+              }}
             >
               {isGrouping ? 'Grouping...' : 'Group All'}
-            </button>
+            </SketchyButton>
             
-            <button
-              style={styles.plusButton}
+            <SketchyButton
+              variant="secondary"
               onClick={() => setIsModalOpen(true)}
-              onMouseEnter={(e) => handlePlusButtonHover(e, true)}
-              onMouseLeave={(e) => handlePlusButtonHover(e, false)}
               title="Create new tab group"
+              size="small"
+              style={{ 
+                width: '40px',
+                height: '40px',
+                color: STYLES.colors.white,
+                fontSize: '24px',
+                fontWeight: '300'
+              }}
             >
               +
-            </button>
+            </SketchyButton>
           </div>
         </div>
       </header>

@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import MatcherInput from './MatcherInput';
+import SketchyButton from './SketchyButton';
+import SketchyInput from './SketchyInput';
 import { MATCHER_TYPES, STYLES } from '../constants.js';
 
 const useModalForm = (editingGroup, onClose) => {
@@ -200,29 +202,12 @@ const CreateTabGroupModal = ({ isOpen, onClose, onCreateGroup, editingGroup }) =
       color: STYLES.colors.text
     },
     input: {
-      padding: '12px 16px',
-      border: `2px solid ${STYLES.colors.border}`,
-      borderRadius: '8px',
-      fontSize: '16px',
-      transition: STYLES.transitions.default,
-      outline: 'none'
+      // Removed - now handled by SketchyInput
     },
     matchersContainer: {
       display: 'flex',
       flexDirection: 'column',
       gap: '12px'
-    },
-    addButton: {
-      padding: '8px 16px',
-      borderRadius: '6px',
-      fontSize: '14px',
-      fontWeight: '600',
-      cursor: 'pointer',
-      transition: STYLES.transitions.default,
-      border: 'none',
-      background: STYLES.colors.successBg,
-      color: STYLES.colors.success,
-      marginTop: '8px'
     },
     helpText: {
       color: STYLES.colors.muted,
@@ -233,24 +218,6 @@ const CreateTabGroupModal = ({ isOpen, onClose, onCreateGroup, editingGroup }) =
       gap: '12px',
       justifyContent: 'flex-end',
       marginTop: '8px'
-    },
-    button: {
-      padding: '12px 24px',
-      borderRadius: '8px',
-      fontSize: '16px',
-      fontWeight: '600',
-      cursor: 'pointer',
-      transition: STYLES.transitions.default,
-      border: 'none'
-    },
-    cancelButton: {
-      background: STYLES.colors.border,
-      color: STYLES.colors.text
-    },
-    submitButton: {
-      background: `linear-gradient(135deg, ${STYLES.colors.primary} 0%, ${STYLES.colors.secondary} 100%)`,
-      color: STYLES.colors.white,
-      opacity: isSubmitting ? 0.7 : 1
     },
     closeButton: {
       position: 'absolute',
@@ -267,11 +234,11 @@ const CreateTabGroupModal = ({ isOpen, onClose, onCreateGroup, editingGroup }) =
   };
 
   const handleInputFocus = (e) => {
-    e.currentTarget.style.borderColor = STYLES.colors.primary;
+    // Removed - now handled by SketchyInput
   };
 
   const handleInputBlur = (e) => {
-    e.currentTarget.style.borderColor = STYLES.colors.border;
+    // Removed - now handled by SketchyInput
   };
 
   return (
@@ -292,12 +259,11 @@ const CreateTabGroupModal = ({ isOpen, onClose, onCreateGroup, editingGroup }) =
         <form style={styles.form} onSubmit={handleSubmit}>
           <div style={styles.field}>
             <label style={styles.label}>Group Name</label>
-            <input
+            <SketchyInput
               type="text"
               value={groupName}
               onChange={(e) => setGroupName(e.target.value)}
               placeholder="e.g., React Documentation"
-              style={styles.input}
               onFocus={handleInputFocus}
               onBlur={handleInputBlur}
               disabled={isSubmitting}
@@ -320,37 +286,39 @@ const CreateTabGroupModal = ({ isOpen, onClose, onCreateGroup, editingGroup }) =
                 />
               ))}
             </div>
-            <button
-              type="button"
+            <SketchyButton
+              variant="success"
               onClick={addMatcher}
-              style={styles.addButton}
               disabled={isSubmitting}
+              size="small"
+              style={{ marginTop: '8px', alignSelf: 'flex-start' }}
             >
               Add Matcher
-            </button>
+            </SketchyButton>
             <small style={styles.helpText}>
               Add URL prefixes, regex patterns, or glob patterns to match tabs. Click the icon to cycle between types.
             </small>
           </div>
           
           <div style={styles.buttonRow}>
-            <button
-              type="button"
-              style={{...styles.button, ...styles.cancelButton}}
+            <SketchyButton
+              variant="secondary"
               onClick={handleClose}
               disabled={isSubmitting}
+              size="large"
             >
               Cancel
-            </button>
-            <button
+            </SketchyButton>
+            <SketchyButton
               type="submit"
-              style={{...styles.button, ...styles.submitButton}}
+              variant="primary"
               disabled={isSubmitting}
+              size="large"
             >
               {isSubmitting 
                 ? (editingGroup ? 'Updating...' : 'Creating...') 
                 : (editingGroup ? 'Update Group' : 'Create Group')}
-            </button>
+            </SketchyButton>
           </div>
         </form>
       </div>

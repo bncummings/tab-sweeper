@@ -1,4 +1,6 @@
 import React from 'react';
+import SketchyButton from './SketchyButton';
+import SketchyInput from './SketchyInput';
 import { MATCHER_TYPES, STYLES } from '../constants.js';
 
 const TypeIcon = ({ type, isSelected }) => {
@@ -136,58 +138,26 @@ const MatcherInput = ({
     container: {
       display: 'flex',
       gap: '8px',
-      alignItems: 'center'
+      alignItems: 'center',
+      width: '100%'
     },
     inputContainer: {
       position: 'relative',
-      flex: 1
+      flex: 1,
+      minWidth: 0, // Allow flex item to shrink
+      maxWidth: 'calc(100% - 54px)' // Leave space for delete button
     },
     input: {
-      padding: '12px 90px 12px 16px',
-      border: `2px solid ${STYLES.colors.border}`,
-      borderRadius: '8px',
-      fontSize: '16px',
-      transition: STYLES.transitions.default,
-      outline: 'none',
-      width: '100%',
-      boxSizing: 'border-box'
-    },
-    removeButton: {
-      padding: '8px',
-      borderRadius: '8px',
-      cursor: 'pointer',
-      transition: STYLES.transitions.default,
-      border: 'none', //`2px solid ${STYLES.colors.dangerBdr}`,
-      background: STYLES.colors.dangerBg,
-      color: STYLES.colors.danger,
-      width: '46px',
-      height: '46px',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center'
+      // Removed - now handled by SketchyInput
     }
   };
 
   const handleInputFocus = (e) => {
-    e.currentTarget.style.borderColor = STYLES.colors.primary;
+    // Removed - now handled by SketchyInput
   };
 
   const handleInputBlur = (e) => {
-    e.currentTarget.style.borderColor = STYLES.colors.border;
-  };
-
-  const handleRemoveMouseEnter = (e) => {
-    if (!disabled && canRemove) {
-      e.currentTarget.style.background = '#f56565';
-      e.currentTarget.style.color = 'white';
-    }
-  };
-
-  const handleRemoveMouseLeave = (e) => {
-    if (!disabled) {
-      e.currentTarget.style.background = STYLES.colors.dangerBg;
-      e.currentTarget.style.color = STYLES.colors.danger;
-    }
+    // Removed - now handled by SketchyInput
   };
 
   const handleTypeChange = (newType) => {
@@ -199,15 +169,20 @@ const MatcherInput = ({
   return (
     <div style={styles.container}>
       <div style={styles.inputContainer}>
-        <input
+        <SketchyInput
           type="text"
           value={matcher.value}
           onChange={(e) => onChange(index, e.target.value)}
           placeholder={getPlaceholder(matcher.type)}
-          style={styles.input}
           onFocus={handleInputFocus}
           onBlur={handleInputBlur}
           disabled={disabled}
+          style={{ 
+            paddingRight: '90px',
+            width: '100%',
+            maxWidth: '100%',
+            boxSizing: 'border-box'
+          }}
         />
         <TypeSelector 
           currentType={matcher.type}
@@ -215,17 +190,16 @@ const MatcherInput = ({
           disabled={disabled}
         />
       </div>
-      <button
-        type="button"
+      <SketchyButton
+        variant="danger"
         onClick={() => onRemove(index)}
-        style={styles.removeButton}
         disabled={disabled || !canRemove}
-        onMouseEnter={handleRemoveMouseEnter}
-        onMouseLeave={handleRemoveMouseLeave}
         title="Remove matcher"
+        size="small"
+        style={{ width: '46px', height: '46px' }}
       >
         <DeleteIcon />
-      </button>
+      </SketchyButton>
     </div>
   );
 };
