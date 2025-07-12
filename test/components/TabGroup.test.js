@@ -38,8 +38,8 @@ describe('TabGroup', () => {
       />
     );
     
-    // Check for the group title (h2) 
-    expect(screen.getByRole('heading', { level: 2, name: 'React Documentation' })).toBeInTheDocument();
+    // Check for the group title (h2) - should be truncated to "React Do..."
+    expect(screen.getByRole('heading', { level: 2, name: 'React Do...' })).toBeInTheDocument();
     // Check for tab titles
     expect(screen.getByText('React API Reference')).toBeInTheDocument();
     // Check for pathname
@@ -143,5 +143,39 @@ describe('TabGroup', () => {
     fireEvent.click(firstTab);
     
     expect(mockOnTabClick).toHaveBeenCalledWith(mockTabs[0]);
+  });
+
+  test('truncates long titles to 8 characters plus ellipsis', () => {
+    render(
+      <TabGroup 
+        title="Very Long Tab Group Name That Should Be Truncated"
+        tabs={mockTabs}
+        onTabClick={mockOnTabClick}
+        onEditGroup={mockOnEditGroup}
+        onDeleteGroup={mockOnDeleteGroup}
+      />
+    );
+    
+    // Check that the title is truncated to "Very Lon..."
+    expect(screen.getByRole('heading', { level: 2, name: 'Very Lon...' })).toBeInTheDocument();
+    
+    // Check that the full title is available in the title attribute for tooltips
+    const heading = screen.getByRole('heading', { level: 2, name: 'Very Lon...' });
+    expect(heading).toHaveAttribute('title', 'Very Long Tab Group Name That Should Be Truncated');
+  });
+
+  test('does not truncate short titles', () => {
+    render(
+      <TabGroup 
+        title="Short"
+        tabs={mockTabs}
+        onTabClick={mockOnTabClick}
+        onEditGroup={mockOnEditGroup}
+        onDeleteGroup={mockOnDeleteGroup}
+      />
+    );
+    
+    // Check that short titles are not truncated
+    expect(screen.getByRole('heading', { level: 2, name: 'Short' })).toBeInTheDocument();
   });
 });

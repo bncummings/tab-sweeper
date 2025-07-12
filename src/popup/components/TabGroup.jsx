@@ -92,6 +92,14 @@ const TabGroup = ({ title, tabs, onTabClick, onEditGroup, onDeleteGroup, onGroup
   const [isExpanded, setIsExpanded] = useState(true);
   const [groupId] = useState(Math.random().toString(36).substr(2, 9)); // Consistent seed
 
+  // Helper function to truncate title if too long
+  const getTruncatedTitle = (title) => {
+    if (title.length > 8) {
+      return title.substring(0, 8) + '...';
+    }
+    return title;
+  };
+
   useEffect(() => {
     if (svgRef.current && containerRef.current) {
       const svg = svgRef.current;
@@ -257,9 +265,9 @@ const TabGroup = ({ title, tabs, onTabClick, onEditGroup, onDeleteGroup, onGroup
     >
       <svg ref={svgRef} style={styles.svg} />
       <div style={styles.titleWithActions} onClick={toggleExpanded}>
-        <h2 style={styles.titleText}>
+        <h2 style={styles.titleText} title={title}>
           <ChevronIcon isExpanded={isExpanded} />
-          {title}
+          {getTruncatedTitle(title)}
         </h2>
         <div style={styles.actions} onClick={(e) => e.stopPropagation()}>
           <SketchyButton
