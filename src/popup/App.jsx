@@ -175,14 +175,16 @@ const App = () => {
               onClick={() => handleGroupTabs()}
               disabled={isGrouping}
               title="Group all tabs"
-              size="small"
+              size="medium"
               style={{ 
                 background: 'rgba(255, 255, 255, 0.2)',
                 backdropFilter: 'blur(10px)',
                 border: '2px solid rgba(255, 255, 255, 0.3)',
                 color: STYLES.colors.white,
                 textTransform: 'uppercase',
-                letterSpacing: '0.5px'
+                letterSpacing: '0.5px',
+                padding: '12px 20px',
+                fontSize: '16px'
               }}
             >
               {isGrouping ? 'Grouping...' : 'Group All'}
@@ -192,13 +194,12 @@ const App = () => {
               variant="secondary"
               onClick={() => setIsModalOpen(true)}
               title="Create new tab group"
-              size="small"
+              size="medium"
               style={{ 
-                width: '40px',
-                height: '40px',
-                color: STYLES.colors.white,
+                color: STYLES.colors.text,
                 fontSize: '24px',
-                fontWeight: '300'
+                fontWeight: '300',
+                padding: '12px 20px'
               }}
             >
               +
