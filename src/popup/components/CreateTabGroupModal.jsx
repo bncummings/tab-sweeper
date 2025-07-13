@@ -294,14 +294,6 @@ const CreateTabGroupModal = ({ isOpen, onClose, onCreateGroup, editingGroup }) =
     }
   };
 
-  const handleInputFocus = (e) => {
-    // Removed - now handled by SketchyInput
-  };
-
-  const handleInputBlur = (e) => {
-    // Removed - now handled by SketchyInput
-  };
-
   const handleModalMouseEnter = () => {
     setIsHovered(true);
   };

@@ -1,4 +1,3 @@
-
 import React from 'react';
 
 const Logo = ({ width = 220, height = 80, color = '#333' }) => {
@@ -20,15 +19,7 @@ const Logo = ({ width = 220, height = 80, color = '#333' }) => {
           objectFit: 'contain'
         }} 
       />
-      {/* <span style={{
-        fontSize: `${height * 0.4}px`,
-        fontWeight: 'bold',
-        color: color === '#333' ? '#333' : 'white',
-        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-        letterSpacing: '1px'
-      }}>
-        tabby
-      </span> */}
+
     </div>
   );
 };

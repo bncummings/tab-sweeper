@@ -259,10 +259,6 @@ const TabGroup = ({ title, tabs, onTabClick, onEditGroup, onDeleteGroup, onGroup
     }
   };
 
-  const handleGroupButtonHover = (e, isHover) => {
-    // Removed - now handled by SketchyButton
-  };
-
   const toggleExpanded = () => {
     setIsExpanded(!isExpanded);
   };

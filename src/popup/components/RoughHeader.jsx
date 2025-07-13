@@ -76,8 +76,6 @@ const RoughHeader = ({ children, style }) => {
       rc.rectangle(0, 0, rect.width, rect.height, {
         fill: STYLES.colors.primary,
         fillStyle: 'solid',
-        // hachureAngle: 45,
-        // hachureGap: 4,
         fillWeight: 2,
         stroke: 'none',
         roughness: 1.5
