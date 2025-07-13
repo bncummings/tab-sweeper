@@ -151,8 +151,6 @@ const TabGroup = ({ title, tabs, onTabClick, onEditGroup, onDeleteGroup, onGroup
     }
   }, [isHovered, groupId, isExpanded]);
 
-  if (tabs.length === 0) return null;
-
   const styles = {
     container: {
       position: 'relative',
@@ -234,14 +232,6 @@ const TabGroup = ({ title, tabs, onTabClick, onEditGroup, onDeleteGroup, onGroup
       height: '100%',
       pointerEvents: 'none',
       zIndex: 0
-    },
-    emptyMessage: {
-      position: 'relative',
-      zIndex: 1,
-      textAlign: 'center',
-      padding: '20px',
-      color: STYLES.colors.muted,
-      fontStyle: 'italic'
     }
   };
 
@@ -303,13 +293,19 @@ const TabGroup = ({ title, tabs, onTabClick, onEditGroup, onDeleteGroup, onGroup
       </div>
       
       <div style={styles.tabList}>
-        {tabs.map((tab) => (
-          <TabItem
-            key={tab.id}
-            tab={tab}
-            onClick={onTabClick}
-          />
-        ))}
+        {tabs.length > 0 ? (
+          tabs.map((tab) => (
+            <TabItem
+              key={tab.id}
+              tab={tab}
+              onClick={onTabClick}
+            />
+          ))
+        ) : (
+          <div style={styles.emptyMessage}>
+            No tabs yet
+          </div>
+        )}
       </div>
     </div>
   );

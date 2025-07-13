@@ -47,7 +47,7 @@ describe('TabGroup', () => {
     expect(screen.getByText('/reference')).toBeInTheDocument();
   });
 
-  test('does not render when tabs array is empty', () => {
+  test('renders empty tab groups with "No tabs yet" message', () => {
     render(
       <TabGroup 
         title="Empty Group"
@@ -58,7 +58,10 @@ describe('TabGroup', () => {
       />
     );
     
-    expect(screen.queryByText('EMPTY GROUP')).not.toBeInTheDocument();
+    // Check that the group title is rendered (truncated)
+    expect(screen.getByRole('heading', { level: 2, name: 'Empty Gr...' })).toBeInTheDocument();
+    // Check that the empty message is displayed
+    expect(screen.getByText('No tabs yet')).toBeInTheDocument();
   });
 
   test('shows edit and delete buttons for all groups', () => {

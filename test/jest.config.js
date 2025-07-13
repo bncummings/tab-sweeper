@@ -8,7 +8,8 @@ export default {
     '^.+\\.css$': 'jest-transform-stub'
   },
   moduleNameMapper: {
-    '\\.(css|less|scss|sass)$': 'identity-obj-proxy'
+    '\\.(css|less|scss|sass)$': 'identity-obj-proxy',
+    '\\.(svg|png|jpg|jpeg|gif)$': 'jest-transform-stub'
   },
   testMatch: [
     '<rootDir>/test/**/*.test.js',
