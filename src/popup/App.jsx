@@ -85,7 +85,7 @@ const App = () => {
       color: '#333'
     },
     header: {
-      padding: '24px',
+      padding: '8px',
       textAlign: 'center',
       position: 'relative'
     },
@@ -93,7 +93,7 @@ const App = () => {
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'space-between',
-      marginBottom: '16px'
+      marginBottom: '8px'
     },
     title: {
       margin: 0,
@@ -107,6 +107,7 @@ const App = () => {
     buttonGroup: {
       display: 'flex',
       alignItems: 'center',
+      justifyContent: 'center',
       gap: '12px'
     },
     main: {
@@ -130,7 +131,7 @@ const App = () => {
     return (
       <div style={styles.app}>
         <RoughHeader style={styles.header}>
-          <Logo color={STYLES.colors.white} width={140} height={45} />
+          <Logo color={STYLES.colors.white}/>
         </RoughHeader>
         <main style={styles.main}>
           <div style={styles.loadingMessage}>Loading tabs...</div>
@@ -143,7 +144,7 @@ const App = () => {
     return (
       <div style={styles.app}>
         <RoughHeader style={styles.header}>
-          <Logo color={STYLES.colors.white} width={140} height={45} />
+          <Logo color={STYLES.colors.white}/>
         </RoughHeader>
         <main style={styles.main}>
           <div style={styles.loadingMessage}>
@@ -159,7 +160,7 @@ const App = () => {
     <div style={styles.app}>
       <RoughHeader style={styles.header}>
         <div style={styles.headerContent}>
-          <Logo color={STYLES.colors.white} width={140} height={45} />
+          <Logo color={STYLES.colors.white} />
           
           <div style={styles.buttonGroup}>
             <SketchyButton
@@ -175,7 +176,8 @@ const App = () => {
                 fontWeight: '800',
                 textTransform: 'uppercase',
                 letterSpacing: '1px',
-                padding: '12px 20px'
+                padding: '12px 10px',
+                whiteSpace: 'nowrap'
               }}
             >
               {isGrouping ? 'Grouping...' : 'Group All'}
