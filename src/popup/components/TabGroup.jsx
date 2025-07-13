@@ -3,6 +3,7 @@ import rough from 'roughjs';
 import TabItem from './TabItem';
 import SketchyButton from './SketchyButton';
 import { STYLES } from '../constants.js';
+import groupIcon from '../../images/group.svg';
 
 const EditIcon = () => (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
@@ -14,6 +15,16 @@ const DeleteIcon = () => (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
     <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
   </svg>
+);
+
+const GroupIcon = () => (
+  <img 
+    src={groupIcon} 
+    alt="Group" 
+    width="16" 
+    height="16" 
+    style={{ filter: 'invert(1)' }} // Make it white to match other icons
+  />
 );
 
 const ChevronIcon = ({ isExpanded }) => {
@@ -270,16 +281,14 @@ const TabGroup = ({ title, tabs, onTabClick, onEditGroup, onDeleteGroup, onGroup
           {getTruncatedTitle(title)}
         </h2>
         <div style={styles.actions} onClick={(e) => e.stopPropagation()}>
-          <SketchyButton
+          <ActionButton
             variant="primary"
             onClick={() => onGroupTabs(title)}
             disabled={isGrouping}
             title={`Group tabs matching "${title}" pattern`}
-            size="small"
-            style={{ fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.5px', minWidth: '80px' }}
           >
-            {isGrouping ? 'Grouping...' : 'Group'}
-          </SketchyButton>
+            <GroupIcon />
+          </ActionButton>
           <ActionButton
             variant="secondary"
             onClick={() => onEditGroup(title)}
