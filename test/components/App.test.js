@@ -87,7 +87,7 @@ describe('App', () => {
     });
     
     await waitFor(() => {
-      expect(screen.getByText('Tab Group')).toBeInTheDocument();
+      expect(screen.getByRole('heading', { level: 2, name: 'Tab Grou...' })).toBeInTheDocument();
     });
   });
 
@@ -108,7 +108,7 @@ describe('App', () => {
     });
     
     await waitFor(() => {
-      expect(screen.getByText('Legacy Group')).toBeInTheDocument();
+      expect(screen.getByRole('heading', { level: 2, name: 'Legacy G...' })).toBeInTheDocument();
     });
   });
 
@@ -188,8 +188,8 @@ describe('App', () => {
     });
     
     await waitFor(() => {
-      expect(screen.getByText('Search Engines')).toBeInTheDocument();
-      expect(screen.getByText('Documentation')).toBeInTheDocument();
+      expect(screen.getByRole('heading', { level: 2, name: 'Search E...' })).toBeInTheDocument();
+      expect(screen.getByRole('heading', { level: 2, name: 'Document...' })).toBeInTheDocument();
     }, { timeout: 2000 });
   });
 
@@ -229,7 +229,7 @@ describe('App', () => {
     });
     
     await waitFor(() => {
-      expect(screen.getByText('Mixed Valid/Invalid')).toBeInTheDocument();
+      expect(screen.getByRole('heading', { level: 2, name: 'Mixed Va...' })).toBeInTheDocument();
       expect(screen.getByText('Valid Site')).toBeInTheDocument();
       expect(screen.getByText('GitHub Page')).toBeInTheDocument();
     });
@@ -267,7 +267,7 @@ describe('App', () => {
     });
     
     await waitFor(() => {
-      expect(screen.getByText('GitHub Pages')).toBeInTheDocument();
+      expect(screen.getByRole('heading', { level: 2, name: 'GitHub P...' })).toBeInTheDocument();
       expect(screen.getByText('My GitHub Page')).toBeInTheDocument();
     });
     
@@ -313,7 +313,7 @@ describe('App', () => {
     });
     
     await waitFor(() => {
-      expect(screen.getByText('Documentation Sites')).toBeInTheDocument();
+      expect(screen.getByRole('heading', { level: 2, name: 'Document...' })).toBeInTheDocument();
       expect(screen.getByText('React Docs')).toBeInTheDocument();
       expect(screen.getByText('Vue Docs')).toBeInTheDocument();
     });

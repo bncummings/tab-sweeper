@@ -331,8 +331,6 @@ const CreateTabGroupModal = ({ isOpen, onClose, onCreateGroup, editingGroup }) =
               value={groupName}
               onChange={(e) => setGroupName(e.target.value)}
               placeholder="e.g., React Documentation"
-              onFocus={handleInputFocus}
-              onBlur={handleInputBlur}
               disabled={isSubmitting}
             />
           </div>
