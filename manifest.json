@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Tab Manager for Dev Docs",
-  "version": "1.0",
+  "version": "1.0.0",
   "description": "A beautiful Chrome extension for organizing and grouping documentation tabs",
   "icons": {
     "16": "images/icon-16.png",
