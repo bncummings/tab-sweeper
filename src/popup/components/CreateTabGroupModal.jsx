@@ -135,18 +135,20 @@ const CreateTabGroupModal = ({ isOpen, onClose, onCreateGroup, editingGroup }) =
       // Initial draw
       redrawBorder();
       
-      // Set up ResizeObserver to redraw when modal size changes
-      const resizeObserver = new ResizeObserver(() => {
-        redrawBorder();
-      });
+      // Set up responsive redrawing
+      const setupResizeObserver = () => {
+        if (typeof ResizeObserver === 'undefined') return null;
+        
+        const observer = new ResizeObserver(redrawBorder);
+        observer.observe(modal);
+        return observer;
+      };
       
-      resizeObserver.observe(modal);
-      
-      // Also redraw after a brief delay to ensure content has rendered
+      const resizeObserver = setupResizeObserver();
       const timeoutId = setTimeout(redrawBorder, 50);
       
       return () => {
-        resizeObserver.disconnect();
+        resizeObserver?.disconnect();
         clearTimeout(timeoutId);
       };
     }
