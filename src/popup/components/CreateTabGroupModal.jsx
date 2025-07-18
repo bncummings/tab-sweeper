@@ -108,26 +108,49 @@ const CreateTabGroupModal = ({ isOpen, onClose, onCreateGroup, editingGroup }) =
       
       const rc = rough.svg(svg);
       
-      // Get actual dimensions for drawing
-      const width = modal.offsetWidth;
-      const height = modal.offsetHeight;
-      
-      if (width > 0 && height > 0) {
-        // Draw sketchy rectangle for the modal
-        const sketchyRect = rc.rectangle(3, 3, width - 6, height - 6, {
-          stroke: isHovered ? STYLES.colors.primary : 'rgba(0,0,0,0.3)',
-          strokeWidth: 2.5,
-          fill: 'rgba(255, 255, 255, 0.98)',
-          fillStyle: 'solid',
-          roughness: 1.4,
-          bowing: 1.1,
-          seed: modalId.split('').reduce((a, b) => a + b.charCodeAt(0), 0)
-        });
+      // Function to redraw the border
+      const redrawBorder = () => {
+        const width = modal.offsetWidth;
+        const height = modal.offsetHeight;
         
-        svg.appendChild(sketchyRect);
-      }
+        if (width > 0 && height > 0) {
+          // Clear previous drawings
+          svg.innerHTML = '';
+          
+          // Draw sketchy rectangle for the modal
+          const sketchyRect = rc.rectangle(3, 3, width - 6, height - 6, {
+            stroke: isHovered ? STYLES.colors.primary : 'rgba(0,0,0,0.3)',
+            strokeWidth: 2.5,
+            fill: 'rgba(255, 255, 255, 0.98)',
+            fillStyle: 'solid',
+            roughness: 1.4,
+            bowing: 1.1,
+            seed: modalId.split('').reduce((a, b) => a + b.charCodeAt(0), 0)
+          });
+          
+          svg.appendChild(sketchyRect);
+        }
+      };
+      
+      // Initial draw
+      redrawBorder();
+      
+      // Set up ResizeObserver to redraw when modal size changes
+      const resizeObserver = new ResizeObserver(() => {
+        redrawBorder();
+      });
+      
+      resizeObserver.observe(modal);
+      
+      // Also redraw after a brief delay to ensure content has rendered
+      const timeoutId = setTimeout(redrawBorder, 50);
+      
+      return () => {
+        resizeObserver.disconnect();
+        clearTimeout(timeoutId);
+      };
     }
-  }, [isOpen, isHovered, modalId]);
+  }, [isOpen, isHovered, modalId, matchers.length]);
 
   if (!isOpen) return null;
 
@@ -212,9 +235,13 @@ const CreateTabGroupModal = ({ isOpen, onClose, onCreateGroup, editingGroup }) =
       padding: '32px',
       width: '90%',
       maxWidth: '500px',
-      maxHeight: '80vh',
-      overflowY: 'auto',
-      boxShadow: '0 25px 50px rgba(0, 0, 0, 0.3)'
+      minHeight: 'auto',
+      maxHeight: '85vh',
+      boxShadow: '0 25px 50px rgba(0, 0, 0, 0.3)',
+      // Ensure the modal grows with content but has proper scrolling
+      display: 'flex',
+      flexDirection: 'column',
+      overflow: 'hidden' // Prevent the modal itself from scrolling
     },
     title: {
       position: 'relative',
@@ -230,7 +257,10 @@ const CreateTabGroupModal = ({ isOpen, onClose, onCreateGroup, editingGroup }) =
       zIndex: 1,
       display: 'flex',
       flexDirection: 'column',
-      gap: '24px'
+      gap: '24px',
+      flex: 1,
+      minHeight: 0,
+      overflow: 'hidden' // Prevent form from overflowing
     },
     field: {
       position: 'relative',
@@ -239,6 +269,28 @@ const CreateTabGroupModal = ({ isOpen, onClose, onCreateGroup, editingGroup }) =
       flexDirection: 'column',
       gap: '8px'
     },
+    matchersField: {
+      position: 'relative',
+      zIndex: 1,
+      display: 'flex',
+      flexDirection: 'column',
+      gap: '8px',
+      flex: 1,
+      minHeight: 0,
+      overflow: 'hidden'
+    },
+    matchersContainer: {
+      position: 'relative',
+      zIndex: 1,
+      display: 'flex',
+      flexDirection: 'column',
+      gap: '12px',
+      flex: 1,
+      minHeight: 0,
+      overflowY: 'auto',
+      maxHeight: '300px', // Limit the height of the matchers area
+      paddingRight: '8px' // Space for scrollbar
+    },
     label: {
       position: 'relative',
       zIndex: 1,
@@ -246,15 +298,13 @@ const CreateTabGroupModal = ({ isOpen, onClose, onCreateGroup, editingGroup }) =
       fontWeight: '600',
       color: STYLES.colors.text
     },
-    input: {
-      // Removed - now handled by SketchyInput
-    },
-    matchersContainer: {
+    addMatcherContainer: {
       position: 'relative',
       zIndex: 1,
       display: 'flex',
       flexDirection: 'column',
-      gap: '12px'
+      gap: '8px',
+      flexShrink: 0 // Prevent shrinking
     },
     helpText: {
       position: 'relative',
@@ -268,7 +318,8 @@ const CreateTabGroupModal = ({ isOpen, onClose, onCreateGroup, editingGroup }) =
       display: 'flex',
       gap: '12px',
       justifyContent: 'flex-end',
-      marginTop: '8px'
+      marginTop: '8px',
+      flexShrink: 0 // Prevent shrinking to keep buttons always visible
     },
     closeButton: {
       position: 'absolute',
@@ -335,7 +386,7 @@ const CreateTabGroupModal = ({ isOpen, onClose, onCreateGroup, editingGroup }) =
             />
           </div>
 
-          <div style={styles.field}>
+          <div style={styles.matchersField}>
             <label style={styles.label}>Matchers</label>
             <div style={styles.matchersContainer}>
               {matchers.map((matcher, index) => (
@@ -351,18 +402,20 @@ const CreateTabGroupModal = ({ isOpen, onClose, onCreateGroup, editingGroup }) =
                 />
               ))}
             </div>
-            <SketchyButton
-              variant="success"
-              onClick={addMatcher}
-              disabled={isSubmitting}
-              size="small"
-              style={{ marginTop: '8px', alignSelf: 'flex-start' }}
-            >
-              Add Matcher
-            </SketchyButton>
-            <small style={styles.helpText}>
-              Add URL prefixes, regex patterns, or glob patterns to match tabs. Click the icon to cycle between types.
-            </small>
+            <div style={styles.addMatcherContainer}>
+              <SketchyButton
+                variant="success"
+                onClick={addMatcher}
+                disabled={isSubmitting}
+                size="small"
+                style={{ alignSelf: 'flex-start' }}
+              >
+                Add Matcher
+              </SketchyButton>
+              <small style={styles.helpText}>
+                Add URL prefixes, regex patterns, or glob patterns to match tabs. Click the icon to cycle between types.
+              </small>
+            </div>
           </div>
           
           <div style={styles.buttonRow}>
