@@ -123,6 +123,27 @@ const App = () => {
       textAlign: 'center',
       padding: '40px',
       color: STYLES.colors.text
+    },
+    emptyState: {
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: '60px 20px',
+      textAlign: 'center',
+      color: STYLES.colors.muted,
+      minHeight: '300px'
+    },
+    emptyStateText: {
+      fontSize: '18px',
+      fontWeight: '500',
+      marginBottom: '12px',
+      color: STYLES.colors.text
+    },
+    emptyStateSubtext: {
+      fontSize: '14px',
+      marginBottom: '24px',
+      lineHeight: '1.5'
     }
   };
 
@@ -205,20 +226,32 @@ const App = () => {
       </RoughHeader>
       
       <main style={styles.main}>
-        <div style={styles.tabGroupsContainer}>
-          {Object.entries(tabGroups).map(([groupName, tabs]) => (
-            <TabGroup
-              key={groupName}
-              title={groupName}
-              tabs={tabs}
-              onTabClick={handleTabClick}
-              onEditGroup={handleEditGroup}
-              onDeleteGroup={deleteGroup}
-              onGroupTabs={handleGroupTabs}
-              isGrouping={isGrouping}
-            />
-          ))}
-        </div>
+        {Object.keys(tabGroups).length === 0 ? (
+          <div style={styles.emptyState}>
+            <div style={styles.emptyStateText}>No tab groups yet</div>
+            <div style={styles.emptyStateSubtext}>
+              Create your first tab group to organize your tabs by URL patterns, regex, or glob patterns.
+            </div>
+            <div style={{ fontSize: '14px', fontWeight: '600', color: STYLES.colors.muted, marginTop: '20px' }}>
+              Click the + button to get started!
+            </div>
+          </div>
+        ) : (
+          <div style={styles.tabGroupsContainer}>
+            {Object.entries(tabGroups).map(([groupName, tabs]) => (
+              <TabGroup
+                key={groupName}
+                title={groupName}
+                tabs={tabs}
+                onTabClick={handleTabClick}
+                onEditGroup={handleEditGroup}
+                onDeleteGroup={deleteGroup}
+                onGroupTabs={handleGroupTabs}
+                isGrouping={isGrouping}
+              />
+            ))}
+          </div>
+        )}
       </main>
       
       <CreateTabGroupModal
