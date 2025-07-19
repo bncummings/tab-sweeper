@@ -1,7 +1,7 @@
 {
-  "name": "documentation-tab-grouper",
+  "name": "tabby",
   "version": "1.0.0",
-  "description": "A Chrome extension for grouping documentation tabs",
+  "description": "A Chrome extension for grouping tabs",
   "dependencies": {
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
