@@ -9,7 +9,7 @@ const Logo = ({ width = 220, height = 80, color = '#333' }) => {
     }}>
       <img 
         src="images/logo2.svg" 
-        alt="Documentation Tab Grouper Logo" 
+        alt="Tabby Logo" 
         style={{ 
           width: width + 'px', 
           height: height + 'px', 
