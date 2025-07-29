@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "A Chrome extension for grouping tabs",
   "dependencies": {
-    "react": "^18.2.0",
+    "react": "^19.1.1",
     "react-dom": "^18.2.0",
     "roughjs": "^4.6.6"
   },
