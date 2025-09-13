@@ -33,6 +33,47 @@ export const useTabGroups = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  const detectManualTabGroups = useCallback(async () => {
+    try {
+      if (!chrome?.tabGroups || !chrome?.tabs) {
+        return [];
+      }
+
+      const windows = await chrome.windows.getAll({ populate: true });
+      const manualGroups = [];
+
+      for (const win of windows) {
+        if (!chrome.tabGroups.query) continue;
+        const groups = await chrome.tabGroups.query({ windowId: win.id });
+        
+        for (const group of groups) {
+          if (group.title) { // Only consider groups with titles
+            const tabsInGroup = await chrome.tabs.query({ windowId: win.id, groupId: group.id });
+            
+            if (tabsInGroup.length > 0) {
+              // Create matchers for each unique URL in the group
+              const urls = [...new Set(tabsInGroup.map(tab => tab.url).filter(url => isValidUrl(url)))];
+              const matchers = urls.map(url => ({ value: url, type: 'prefix' }));
+              
+              if (matchers.length > 0) {
+                manualGroups.push({
+                  name: group.title,
+                  matchers: matchers,
+                  isManual: true // Flag to indicate this was detected from Chrome
+                });
+              }
+            }
+          }
+        }
+      }
+
+      return manualGroups;
+    } catch (error) {
+      console.error('Error detecting manual tab groups:', error);
+      return [];
+    }
+  }, []);
+
   const initializeTabGroups = useCallback(async () => {
     try {
       if (!chrome?.tabs) {
@@ -40,9 +81,22 @@ export const useTabGroups = () => {
       }
 
       const savedTabGroups = await storage.getTabGroups();
-      setUserTabGroups(savedTabGroups);
+      const manualTabGroups = await detectManualTabGroups();
+      
+      // Merge saved groups with detected manual groups, avoiding duplicates
+      const savedGroupNames = new Set(savedTabGroups.map(g => g.name));
+      const newManualGroups = manualTabGroups.filter(g => !savedGroupNames.has(g.name));
+      
+      const allTabGroups = [...savedTabGroups, ...newManualGroups];
+      
+      // Save the updated list including new manual groups
+      if (newManualGroups.length > 0) {
+        await storage.saveTabGroups(allTabGroups);
+      }
+      
+      setUserTabGroups(allTabGroups);
 
-      const tabGroupObjects = savedTabGroups.map(convertLegacyGroupFormat);
+      const tabGroupObjects = allTabGroups.map(convertLegacyGroupFormat);
       const groups = {};
       
       for (const group of tabGroupObjects) {
@@ -59,7 +113,7 @@ export const useTabGroups = () => {
       setIsLoading(false);
       setTabGroups({});
     }
-  }, []);
+  }, [detectManualTabGroups]);
 
   const createTabGroup = useCallback(async (groupName, matchers) => {
     const validMatchers = matchers
@@ -144,7 +198,7 @@ export const useTabGroups = () => {
 
     setUserTabGroups(updatedTabGroups);
     const newTabGroups = { ...tabGroups };
-    
+
     delete newTabGroups[groupName];
     setTabGroups(newTabGroups);
   }, [userTabGroups, tabGroups]);
