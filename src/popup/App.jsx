@@ -213,7 +213,7 @@ const App = () => {
               strokeColor="rgba(120, 120, 120, 1)"
               style={{ 
                 color: STYLES.colors.primary,
-                fontSize: '18px',
+                fontSize: '14px',
                 fontWeight: '800',
                 textTransform: 'uppercase',
                 letterSpacing: '1px',
@@ -236,7 +236,7 @@ const App = () => {
                 fontWeight: '800',
                 textTransform: 'uppercase',
                 letterSpacing: '1px',
-                padding: '12px 20px'
+                padding: '8px 12px'
               }}
             >
               +
