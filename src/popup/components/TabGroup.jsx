@@ -105,8 +105,8 @@ const TabGroup = ({ title, tabs, onTabClick, onEditGroup, onDeleteGroup, onGroup
 
   // Helper function to truncate title if too long
   const getTruncatedTitle = (title) => {
-    if (title.length > 8) {
-      return title.substring(0, 8) + '...';
+    if (title.length > 10) {
+      return title.substring(0, 10) + '...';
     }
     return title;
   };
