@@ -90,7 +90,7 @@ const ActionButton = ({ variant, onClick, title, children, disabled }) => (
     title={title}
     size="small"
     disabled={disabled}
-    style={{ width: '32px', height: '32px', padding: '8px' }}
+    style={{ width: '28px', height: '28px', padding: '6px' }}
   >
     {children}
   </SketchyButton>
@@ -154,25 +154,25 @@ const TabGroup = ({ title, tabs, onTabClick, onEditGroup, onDeleteGroup, onGroup
   const styles = {
     container: {
       position: 'relative',
-      marginBottom: '24px',
+      marginBottom: '16px',
       background: 'transparent', // Let rough.js handle the background
-      padding: '24px',
-      paddingRight: '32px', // Extra padding on right to accommodate hover animations
+      padding: '16px',
+      paddingRight: '24px', // Extra padding on right to accommodate hover animations
       cursor: 'default',
       transition: STYLES.transitions.default,
       transform: isHovered ? 'translateY(-4px)' : 'translateY(0)',
-      minHeight: isExpanded ? '120px' : 'auto', // Adjust height based on expanded state
+      minHeight: isExpanded ? '100px' : 'auto', // Adjust height based on expanded state
       overflow: 'visible' // Ensure hover animations are visible
     },
     title: {
       position: 'relative',
       zIndex: 1,
-      margin: '0 0 18px 0',
-      fontSize: '22px',
+      margin: '0 0 12px 0',
+      fontSize: '20px',
       fontWeight: '800',
       color: STYLES.colors.text,
-      borderBottom: `4px solid ${STYLES.colors.primary}`,
-      paddingBottom: '14px',
+      borderBottom: `3px solid ${STYLES.colors.primary}`,
+      paddingBottom: '8px',
       textAlign: 'center',
       textTransform: 'uppercase',
       letterSpacing: '1px'
@@ -183,25 +183,25 @@ const TabGroup = ({ title, tabs, onTabClick, onEditGroup, onDeleteGroup, onGroup
       display: 'flex',
       justifyContent: 'space-between',
       alignItems: 'center',
-      marginBottom: isExpanded ? '18px' : '0',
+      marginBottom: isExpanded ? '12px' : '0',
       cursor: 'pointer'
     },
     titleText: {
-      fontSize: '22px',
+      fontSize: '20px',
       fontWeight: '800',
       color: STYLES.colors.text,
-      borderBottom: `4px solid ${STYLES.colors.primary}`,
-      paddingBottom: '14px',
+      borderBottom: `3px solid ${STYLES.colors.primary}`,
+      paddingBottom: '8px',
       textTransform: 'uppercase',
       letterSpacing: '1px',
       textAlign: 'left',
       display: 'flex',
       alignItems: 'center',
-      gap: '12px'
+      gap: '10px'
     },
     actions: {
       display: 'flex',
-      gap: '8px',
+      gap: '6px',
       alignItems: 'center'
     },
     tabList: {
@@ -209,7 +209,7 @@ const TabGroup = ({ title, tabs, onTabClick, onEditGroup, onDeleteGroup, onGroup
       zIndex: 1,
       display: isExpanded ? 'flex' : 'none',
       flexDirection: 'column',
-      gap: '10px',
+      gap: '8px',
       opacity: isExpanded ? 1 : 0,
       maxHeight: isExpanded ? 'none' : '0',
       overflow: 'visible', // Changed from 'hidden' to 'visible' to show hover animations
@@ -220,7 +220,7 @@ const TabGroup = ({ title, tabs, onTabClick, onEditGroup, onDeleteGroup, onGroup
       position: 'relative',
       zIndex: 1,
       textAlign: 'center',
-      padding: '20px',
+      padding: '16px',
       color: STYLES.colors.muted,
       fontStyle: 'italic'
     },
