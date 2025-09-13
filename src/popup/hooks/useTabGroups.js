@@ -116,12 +116,35 @@ export const useTabGroups = () => {
   }, [userTabGroups, tabGroups]);
 
   const deleteGroup = useCallback(async (groupName) => {
+    if (chrome?.tabGroups && chrome?.tabs) {
+      try {
+        const windows = await chrome.windows.getAll({ populate: true });
+
+        for (const win of windows) {
+          if (chrome.tabGroups.query) {
+            const groups = await chrome.tabGroups.query({ title: groupName, windowId: win.id });
+
+            for (const group of groups) {
+              const tabsInGroup = await chrome.tabs.query({ windowId: win.id, groupId: group.id });
+              const tabIds = tabsInGroup.map(tab => tab.id);
+
+              if (tabIds.length > 0) {
+                await chrome.tabs.ungroup(tabIds);
+              }
+            }
+          }
+        }
+      } catch (err) {
+        console.warn('Could not ungroup Chrome tab group:', err);
+      }
+    }
+
     const updatedTabGroups = userTabGroups.filter(g => g.name !== groupName);
-    
     await storage.saveTabGroups(updatedTabGroups);
+
     setUserTabGroups(updatedTabGroups);
-    
     const newTabGroups = { ...tabGroups };
+    
     delete newTabGroups[groupName];
     setTabGroups(newTabGroups);
   }, [userTabGroups, tabGroups]);
