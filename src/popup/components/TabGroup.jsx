@@ -154,14 +154,14 @@ const TabGroup = ({ title, tabs, onTabClick, onEditGroup, onDeleteGroup, onGroup
   const styles = {
     container: {
       position: 'relative',
-      marginBottom: '16px',
+      marginBottom: '14px',
       background: 'transparent', // Let rough.js handle the background
-      padding: '16px',
-      paddingRight: '24px', // Extra padding on right to accommodate hover animations
+      padding: '12px',
+      paddingRight: '18px', // Extra padding on right to accommodate hover animations
       cursor: 'default',
       transition: STYLES.transitions.default,
       transform: isHovered ? 'translateY(-4px)' : 'translateY(0)',
-      minHeight: isExpanded ? '100px' : 'auto', // Adjust height based on expanded state
+      minHeight: isExpanded ? '80px' : 'auto', // Adjust height based on expanded state
       overflow: 'visible' // Ensure hover animations are visible
     },
     title: {
@@ -171,7 +171,6 @@ const TabGroup = ({ title, tabs, onTabClick, onEditGroup, onDeleteGroup, onGroup
       fontSize: '20px',
       fontWeight: '800',
       color: STYLES.colors.text,
-      borderBottom: `3px solid ${STYLES.colors.primary}`,
       paddingBottom: '8px',
       textAlign: 'center',
       textTransform: 'uppercase',
@@ -183,14 +182,13 @@ const TabGroup = ({ title, tabs, onTabClick, onEditGroup, onDeleteGroup, onGroup
       display: 'flex',
       justifyContent: 'space-between',
       alignItems: 'center',
-      marginBottom: isExpanded ? '12px' : '0',
+      marginBottom: isExpanded ? '8px' : '0',
       cursor: 'pointer'
     },
     titleText: {
       fontSize: '20px',
       fontWeight: '800',
       color: STYLES.colors.text,
-      borderBottom: `3px solid ${STYLES.colors.primary}`,
       paddingBottom: '8px',
       textTransform: 'uppercase',
       letterSpacing: '1px',
