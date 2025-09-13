@@ -34,9 +34,14 @@ const App = () => {
   const handleGroupTabs = async (groupName = null) => {
     setIsGrouping(true);
     try {
+      /* Get the currently active tab first */
+      const [activeTab] = await chrome.tabs.query({ active: true, currentWindow: true });
+      
       const groupsToProcess = groupName 
         ? { [groupName]: tabGroups[groupName] }
         : tabGroups;
+
+      const createdGroups = [];
 
       for (const [name, tabs] of Object.entries(groupsToProcess)) {
         if (tabs.length === 0) continue;
@@ -44,6 +49,21 @@ const App = () => {
         const tabIds = tabs.map(({ id }) => id);
         const tabGroup = await chrome.tabs.group({ tabIds });
         await chrome.tabGroups.update(tabGroup, { title: name });
+        
+        /* Track which group contains the active tab */
+        const containsActiveTab = tabs.some(tab => tab.id === activeTab.id);
+        createdGroups.push({ groupId: tabGroup, containsActiveTab, name });
+      }
+
+      /* Collapse all groups except the one containing the active tab */
+      for (const { groupId, containsActiveTab } of createdGroups) {
+        if (!containsActiveTab && chrome.tabGroups.update) {
+          try {
+            await chrome.tabGroups.update(groupId, { collapsed: true });
+          } catch (error) {
+            console.warn('Could not collapse tab group:', error);
+          }
+        }
       }
     } catch (error) {
       console.error('Error grouping tabs:', error);
