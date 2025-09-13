@@ -57,13 +57,13 @@ const TabItem = ({ tab, onClick }) => {
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'space-between',
-      padding: '16px 20px',
+      padding: '12px 16px',
       background: 'transparent', // Let rough.js handle the background
       cursor: 'pointer',
       transition: STYLES.transitions.default,
       transform: isHovered ? 'translateX(4px)' : 'translateX(0)', // Reduced from 8px to 4px
       marginRight: '6px', // Add margin to prevent overflow
-      minHeight: '60px' // Ensure consistent height
+      minHeight: '50px' // Ensure consistent height
     },
     content: {
       flex: 1,
@@ -72,8 +72,8 @@ const TabItem = ({ tab, onClick }) => {
       zIndex: 1
     },
     title: {
-      margin: '0 0 6px 0',
-      fontSize: '15px',
+      margin: '0 0 4px 0',
+      fontSize: '14px',
       fontWeight: '600',
       color: STYLES.colors.text,
       overflow: 'hidden',
@@ -82,7 +82,7 @@ const TabItem = ({ tab, onClick }) => {
     },
     pathname: {
       margin: 0,
-      fontSize: '13px',
+      fontSize: '12px',
       color: STYLES.colors.muted,
       overflow: 'hidden',
       textOverflow: 'ellipsis',
@@ -90,7 +90,7 @@ const TabItem = ({ tab, onClick }) => {
     },
     favicon: {
       flexShrink: 0,
-      marginLeft: '16px',
+      marginLeft: '12px',
       position: 'relative',
       zIndex: 1
     },

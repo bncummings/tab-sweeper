@@ -412,7 +412,7 @@ const CreateTabGroupModal = ({ isOpen, onClose, onCreateGroup, editingGroup }) =
                 size="small"
                 style={{ alignSelf: 'flex-start' }}
               >
-                Add Matcher
+                Add Another Matcher
               </SketchyButton>
               <small style={styles.helpText}>
                 Add URL prefixes, regex patterns, or glob patterns to match tabs. Click the icon to cycle between types.
