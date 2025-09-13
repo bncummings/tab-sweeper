@@ -74,11 +74,61 @@ export const useTabGroups = () => {
     }
   }, []);
 
+  const syncWithChromeTabGroups = useCallback(async () => {
+    try {
+      if (!chrome?.tabGroups || !chrome?.tabs) {
+        return;
+      }
+
+      const savedTabGroups = await storage.getTabGroups();
+      const windows = await chrome.windows.getAll({ populate: true });
+      const existingChromeGroupNames = new Set();
+      
+      for (const win of windows) {
+        if (!chrome.tabGroups.query) continue;
+        const groups = await chrome.tabGroups.query({ windowId: win.id });
+        groups.forEach(group => {
+          if (group.title) {
+            existingChromeGroupNames.add(group.title);
+          }
+        });
+      }
+
+      const syncedTabGroups = savedTabGroups.filter(group => {
+        if (!group.isManual) {
+          return true;
+        }
+
+        return existingChromeGroupNames.has(group.name);
+      });
+
+      if (syncedTabGroups.length !== savedTabGroups.length) {
+        await storage.saveTabGroups(syncedTabGroups);
+        setUserTabGroups(syncedTabGroups);
+        
+        const tabGroupObjects = syncedTabGroups.map(convertLegacyGroupFormat);
+        const groups = {};
+        
+        for (const group of tabGroupObjects) {
+          const matchingTabs = await findMatchingTabs(group.matchers);
+          const uniqueTabs = removeDuplicateTabs(matchingTabs);
+          groups[group.name] = sortTabsByTitle(uniqueTabs);
+        }
+        
+        setTabGroups(groups);
+      }
+    } catch (error) {
+      console.error('Error syncing with Chrome tab groups:', error);
+    }
+  }, []);
+
   const initializeTabGroups = useCallback(async () => {
     try {
       if (!chrome?.tabs) {
         throw new Error('Chrome APIs not available');
       }
+
+      await syncWithChromeTabGroups();
 
       const savedTabGroups = await storage.getTabGroups();
       const manualTabGroups = await detectManualTabGroups();
@@ -113,7 +163,7 @@ export const useTabGroups = () => {
       setIsLoading(false);
       setTabGroups({});
     }
-  }, [detectManualTabGroups]);
+  }, [detectManualTabGroups, syncWithChromeTabGroups]);
 
   const createTabGroup = useCallback(async (groupName, matchers) => {
     const validMatchers = matchers
@@ -214,6 +264,7 @@ export const useTabGroups = () => {
     error,
     createTabGroup,
     updateGroup,
-    deleteGroup
+    deleteGroup,
+    syncWithChromeTabGroups
   };
 };
