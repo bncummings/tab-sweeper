@@ -1,5 +1,5 @@
 {
-  "name": "tabby",
+  "name": "Tab Sweeper",
   "version": "1.0.0",
   "description": "A Chrome extension for grouping tabs",
   "dependencies": {

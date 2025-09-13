@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "Tabby",
+  "name": "Tab Sweeper",
   "version": "1.0.0",
   "description": "A chrome extension for managing your tabs",
   "icons": {
