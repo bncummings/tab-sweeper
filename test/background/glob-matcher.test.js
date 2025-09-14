@@ -1,175 +1,128 @@
 import { globToRegex } from '../../src/popup/utils';
 
-describe('Glob Pattern Matching', () => {
-  describe('globToRegex', () => {
-    test('converts basic glob patterns correctly', () => {
-      const regex = globToRegex('https://*/docs/**');
-      expect(regex.source).toBe('^https:\\/\\/.*\\/docs\\/.*.*$');
-    });
+beforeEach(() => {
+  jest.clearAllMocks();
+});
 
-    test('escapes special regex characters', () => {
-      const regex = globToRegex('https://example.com/docs?page=1');
-      expect(regex.source).toBe('^https:\\/\\/example\\.com\\/docs.page=1$');
-    });
+test('converts single asterisk to .* in regex', () => {
+  const regex = globToRegex('prefix*suffix');
+  
+  expect(regex.source).toBe('^prefix.*suffix$');
+  expect(regex.test('prefixANYTHINGsuffix')).toBe(true);
+  expect(regex.test('prefixsuffix')).toBe(true);
+});
 
-    test('handles multiple wildcards', () => {
-      const regex = globToRegex('*://*/path/*');
-      expect(regex.source).toBe('^.*:\\/\\/.*\\/path\\/.*$');
-    });
-  });
+test('converts double asterisk to .* in regex', () => {
+  const regex = globToRegex('path/**');
 
-  describe('Documentation Sites Pattern', () => {
-    const pattern = 'https://*/docs/**';
-    let regex;
+  expect(regex.source).toBe('^path\\/.*.*$');
+  expect(regex.test('path/deep/nested/file')).toBe(true);
+  expect(regex.test('path/')).toBe(true);
+});
 
-    beforeEach(() => {
-      regex = globToRegex(pattern);
-    });
+test('converts question mark to single character match', () => {
+  const regex = globToRegex('file?.txt');
 
-    test('matches React documentation URLs', () => {
-      expect(regex.test('https://react.dev/docs/getting-started')).toBe(true);
-      expect(regex.test('https://react.dev/docs/hooks/state')).toBe(true);
-    });
+  expect(regex.source).toBe('^file.\\.txt$');
+  expect(regex.test('fileA.txt')).toBe(true);
+  expect(regex.test('file1.txt')).toBe(true);
+  expect(regex.test('file.txt')).toBe(false);
+  expect(regex.test('fileAB.txt')).toBe(false);
+});
 
-    test('matches Vue documentation URLs', () => {
-      expect(regex.test('https://vuejs.org/docs/guide')).toBe(true);
-      expect(regex.test('https://vuejs.org/docs/api/composition-api')).toBe(true);
-    });
+test('escapes regex special characters', () => {
+  const regex = globToRegex('path.with+special[chars](and){braces}|pipes^dollars$');
+  const escaped = '^path\\.with\\+special\\[chars\\]\\(and\\)\\{braces\\}\\|pipes\\^dollars\\$$';
 
-    test('matches Angular documentation URLs', () => {
-      expect(regex.test('https://angular.io/docs/tutorial')).toBe(true);
-      expect(regex.test('https://angular.io/docs/guide/setup')).toBe(true);
-    });
+  expect(regex.source).toBe(escaped);
+});
 
-    test('rejects non-documentation URLs', () => {
-      expect(regex.test('https://example.com/api')).toBe(false);
-      expect(regex.test('https://react.dev/blog')).toBe(false);
-      expect(regex.test('https://vuejs.org/examples')).toBe(false);
-    });
+test('combines multiple glob patterns correctly', () => {
+  const regex = globToRegex('*/middle/*/end?');
 
-    test('rejects HTTP URLs when pattern specifies HTTPS', () => {
-      expect(regex.test('http://react.dev/docs/hooks')).toBe(false);
-      expect(regex.test('http://vuejs.org/docs/guide')).toBe(false);
-    });
+  expect(regex.source).toBe('^.*\\/middle\\/.*\\/end.$');
+  expect(regex.test('start/middle/something/endX')).toBe(true);
+  expect(regex.test('a/middle/b/end1')).toBe(true);
+  expect(regex.test('x/middle/y/end')).toBe(false);
+});
 
-    test('expected matches count', () => {
-      const testUrls = [
-        'https://react.dev/docs/getting-started',
-        'https://vuejs.org/docs/guide',
-        'https://angular.io/docs/tutorial',
-        'https://example.com/api',  // Should not match
-        'http://react.dev/docs/hooks'  // Should not match (http vs https)
-      ];
+test('handles protocol patterns', () => {
+  const httpPattern = globToRegex('http*://*/path');
+  const exactProtocol = globToRegex('https://*/path');
 
-      const matches = testUrls.filter(url => regex.test(url));
-      expect(matches).toHaveLength(3);
-      expect(matches).toEqual([
-        'https://react.dev/docs/getting-started',
-        'https://vuejs.org/docs/guide',
-        'https://angular.io/docs/tutorial'
-      ]);
-    });
-  });
+  expect(httpPattern.test('http://domain/path')).toBe(true);
+  expect(httpPattern.test('https://domain/path')).toBe(true);
+  expect(httpPattern.test('httpx://domain/path')).toBe(true);
+  expect(exactProtocol.test('https://domain/path')).toBe(true);
+  expect(exactProtocol.test('http://domain/path')).toBe(false);
+});
 
-  describe('GitHub Issues Pattern', () => {
-    const pattern = 'https://github.com/*/issues/*';
-    let regex;
+test('handles domain patterns', () => {
+  const subdomainPattern = globToRegex('https://*.domain.com/*');
 
-    beforeEach(() => {
-      regex = globToRegex(pattern);
-    });
+  expect(subdomainPattern.test('https://api.domain.com/endpoint')).toBe(true);
+  expect(subdomainPattern.test('https://www.domain.com/page')).toBe(true);
+  expect(subdomainPattern.test('https://domain.com/page')).toBe(false);
+});
 
-    test('matches GitHub issue URLs', () => {
-      expect(regex.test('https://github.com/facebook/react/issues/123')).toBe(true);
-      expect(regex.test('https://github.com/vuejs/vue/issues/456')).toBe(true);
-    });
+test('handles path patterns', () => {
+  const pathPattern = globToRegex('*/api/*/data');
 
-    test('rejects GitHub pull request URLs', () => {
-      expect(regex.test('https://github.com/facebook/react/pulls/789')).toBe(false);
-    });
+  expect(pathPattern.test('site/api/v1/data')).toBe(true);
+  expect(pathPattern.test('app/api/users/data')).toBe(true);
+  expect(pathPattern.test('site/api/data')).toBe(false);
+  expect(pathPattern.test('site/api/v1/info')).toBe(false);
+});
 
-    test('rejects GitLab URLs', () => {
-      expect(regex.test('https://gitlab.com/user/repo/issues/111')).toBe(false);
-    });
+test('handles file extension patterns', () => {
+  const jsPattern = globToRegex('*.js');
 
-    test('expected matches count', () => {
-      const testUrls = [
-        'https://github.com/facebook/react/issues/123',
-        'https://github.com/vuejs/vue/issues/456',
-        'https://github.com/facebook/react/pulls/789',  // Should not match
-        'https://gitlab.com/user/repo/issues/111'  // Should not match
-      ];
+  expect(jsPattern.test('app.js')).toBe(true);
+  expect(jsPattern.test('component.js')).toBe(true);
+  expect(jsPattern.test('file.jsx')).toBe(false);
+  expect(jsPattern.test('file.ts')).toBe(false);
+});
 
-      const matches = testUrls.filter(url => regex.test(url));
-      expect(matches).toHaveLength(2);
-      expect(matches).toEqual([
-        'https://github.com/facebook/react/issues/123',
-        'https://github.com/vuejs/vue/issues/456'
-      ]);
-    });
-  });
+test('handles empty pattern', () => {
+  const emptyRegex = globToRegex('');
 
-  describe('Localhost Pattern', () => {
-    const pattern = '*://localhost:*/**';
-    let regex;
+  expect(emptyRegex.source).toBe('^$');
+  expect(emptyRegex.test('')).toBe(true);
+  expect(emptyRegex.test('anything')).toBe(false);
+});
 
-    beforeEach(() => {
-      regex = globToRegex(pattern);
-    });
+test('handles pattern with only wildcards', () => {
+  const allPattern = globToRegex('*');
+  const deepPattern = globToRegex('**');
 
-    test('matches HTTP localhost URLs', () => {
-      expect(regex.test('http://localhost:3000/app')).toBe(true);
-      expect(regex.test('http://localhost:5000/api/users')).toBe(true);
-    });
+  expect(allPattern.test('anything')).toBe(true);
+  expect(allPattern.test('')).toBe(true);
+  expect(allPattern.test('multiple words')).toBe(true);
+  expect(deepPattern.test('deep/path/structure')).toBe(true);
+});
 
-    test('matches HTTPS localhost URLs', () => {
-      expect(regex.test('https://localhost:8080/admin')).toBe(true);
-    });
+test('handles exact match patterns', () => {
+  const exactPattern = globToRegex('exact/match/pattern');
 
-    test('rejects non-localhost URLs with same port pattern', () => {
-      expect(regex.test('https://example.com:3000/app')).toBe(false);
-    });
+  expect(exactPattern.test('exact/match/pattern')).toBe(true);
+  expect(exactPattern.test('exact/match/pattern/extra')).toBe(false);
+  expect(exactPattern.test('prefix/exact/match/pattern')).toBe(false);
+});
 
-    test('expected matches count', () => {
-      const testUrls = [
-        'http://localhost:3000/app',
-        'https://localhost:8080/admin',
-        'http://localhost:5000/api/users',
-        'https://example.com:3000/app'  // Should not match
-      ];
+test('handles complex mixed patterns', () => {
+  const complexPattern = globToRegex('*/api/v?/users/*.json');
 
-      const matches = testUrls.filter(url => regex.test(url));
-      expect(matches).toHaveLength(3);
-      expect(matches).toEqual([
-        'http://localhost:3000/app',
-        'https://localhost:8080/admin',
-        'http://localhost:5000/api/users'
-      ]);
-    });
-  });
+  expect(complexPattern.test('app/api/v1/users/data.json')).toBe(true);
+  expect(complexPattern.test('site/api/v2/users/list.json')).toBe(true);
+  expect(complexPattern.test('app/api/v10/users/data.json')).toBe(false); // v10 has 2 chars, ? matches only 1
+  expect(complexPattern.test('app/api/v1/posts/data.json')).toBe(false);
+  expect(complexPattern.test('app/api/v1/users/data.xml')).toBe(false);
+});
 
-  describe('Edge Cases', () => {
-    test('handles empty patterns', () => {
-      const regex = globToRegex('');
-      expect(regex.test('')).toBe(true);
-      expect(regex.test('anything')).toBe(false);
-    });
+test('is case sensitive by default', () => {
+  const pattern = globToRegex('Case*Sensitive');
 
-    test('handles patterns with only wildcards', () => {
-      const regex = globToRegex('*');
-      expect(regex.test('anything')).toBe(true);
-      expect(regex.test('')).toBe(true);
-    });
-
-    test('handles patterns with no wildcards', () => {
-      const regex = globToRegex('https://exact.com/path');
-      expect(regex.test('https://exact.com/path')).toBe(true);
-      expect(regex.test('https://exact.com/path/extra')).toBe(false);
-    });
-
-    test('handles patterns with special characters', () => {
-      const regex = globToRegex('https://site.com/path[1-9]?test=*');
-      expect(regex.test('https://site.com/path[1-9]xtest=value')).toBe(true);
-    });
-  });
+  expect(pattern.test('CaseINSensitive')).toBe(true);
+  expect(pattern.test('caseinsensitive')).toBe(false);
+  expect(pattern.test('CASEINSENSITIVE')).toBe(false);
 });
