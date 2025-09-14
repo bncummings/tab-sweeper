@@ -38,7 +38,7 @@ describe('App', () => {
     });
     
     await waitFor(() => {
-      expect(screen.getByText('+')).toBeInTheDocument();
+      expect(screen.getByTestId('create-group-button')).toBeInTheDocument();
     });
   });
 
@@ -48,7 +48,7 @@ describe('App', () => {
     });
     
     await waitFor(() => {
-      expect(screen.getByText('Group All')).toBeInTheDocument();
+      expect(screen.getByTestId('group-all-button')).toBeInTheDocument();
     });
   });
 
@@ -58,11 +58,11 @@ describe('App', () => {
     });
     
     await waitFor(() => {
-      expect(screen.getByText('+')).toBeInTheDocument();
+      expect(screen.getByTestId('create-group-button')).toBeInTheDocument();
     });
     
     await act(async () => {
-      fireEvent.click(screen.getByText('+'));
+      fireEvent.click(screen.getByTestId('create-group-button'));
     });
     
     await waitFor(() => {
@@ -87,7 +87,7 @@ describe('App', () => {
     });
     
     await waitFor(() => {
-      expect(screen.getByRole('heading', { level: 2, name: 'Tab Grou...' })).toBeInTheDocument();
+      expect(screen.getByTestId('tab-group-Tab Group')).toBeInTheDocument();
     });
   });
 
@@ -108,7 +108,7 @@ describe('App', () => {
     });
     
     await waitFor(() => {
-      expect(screen.getByRole('heading', { level: 2, name: 'Legacy G...' })).toBeInTheDocument();
+      expect(screen.getByTestId('tab-group-Legacy Group')).toBeInTheDocument();
     });
   });
 
@@ -188,8 +188,8 @@ describe('App', () => {
     });
     
     await waitFor(() => {
-      expect(screen.getByRole('heading', { level: 2, name: 'Search E...' })).toBeInTheDocument();
-      expect(screen.getByRole('heading', { level: 2, name: 'Document...' })).toBeInTheDocument();
+      expect(screen.getByTestId('tab-group-Search Engines')).toBeInTheDocument();
+      expect(screen.getByTestId('tab-group-Documentation')).toBeInTheDocument();
     }, { timeout: 2000 });
   });
 
@@ -229,7 +229,7 @@ describe('App', () => {
     });
     
     await waitFor(() => {
-      expect(screen.getByRole('heading', { level: 2, name: 'Mixed Va...' })).toBeInTheDocument();
+      expect(screen.getByTestId('tab-group-Mixed Valid/Invalid')).toBeInTheDocument();
       expect(screen.getByText('Valid Site')).toBeInTheDocument();
       expect(screen.getByText('GitHub Page')).toBeInTheDocument();
     });
@@ -267,7 +267,7 @@ describe('App', () => {
     });
     
     await waitFor(() => {
-      expect(screen.getByRole('heading', { level: 2, name: 'GitHub P...' })).toBeInTheDocument();
+      expect(screen.getByTestId('tab-group-GitHub Pages')).toBeInTheDocument();
       expect(screen.getByText('My GitHub Page')).toBeInTheDocument();
     });
     
@@ -313,7 +313,7 @@ describe('App', () => {
     });
     
     await waitFor(() => {
-      expect(screen.getByRole('heading', { level: 2, name: 'Document...' })).toBeInTheDocument();
+      expect(screen.getByTestId('tab-group-Documentation Sites')).toBeInTheDocument();
       expect(screen.getByText('React Docs')).toBeInTheDocument();
       expect(screen.getByText('Vue Docs')).toBeInTheDocument();
     });
