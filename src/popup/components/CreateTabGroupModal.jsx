@@ -5,14 +5,94 @@ import SketchyButton from './SketchyButton';
 import SketchyInput from './SketchyInput';
 import { MATCHER_TYPES, STYLES } from '../constants.js';
 
+// Chrome tab group colors - copied from TabGroup.jsx for consistency
+const CHROME_COLORS = [
+  { name: 'grey', hex: '#5F6368' },
+  { name: 'blue', hex: '#1A73E8' },
+  { name: 'red', hex: '#D93025' },
+  { name: 'yellow', hex: '#F9AB00' },
+  { name: 'green', hex: '#137333' },
+  { name: 'pink', hex: '#D01884' },
+  { name: 'purple', hex: '#9334E6' },
+  { name: 'cyan', hex: '#007B83' }
+];
+
+// Color picker component with radio button style layout
+const ColorRadioGroup = ({ currentColor, onColorChange, disabled = false }) => {
+  return (
+    <div style={{
+      display: 'flex',
+      flexWrap: 'wrap',
+      gap: '8px',
+      alignItems: 'center'
+    }}>
+      {CHROME_COLORS.map(({ name, hex }) => (
+        <label
+          key={name}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            cursor: disabled ? 'not-allowed' : 'pointer',
+            opacity: disabled ? 0.6 : 1
+          }}
+        >
+          <input
+            type="radio"
+            name="groupColor"
+            value={name}
+            checked={currentColor === name}
+            onChange={() => !disabled && onColorChange(name)}
+            disabled={disabled}
+            style={{
+              display: 'none' // Hide the default radio button
+            }}
+          />
+          <div
+            style={{
+              position: 'relative',
+              width: '32px',
+              height: '32px',
+              backgroundColor: hex,
+              borderRadius: '6px',
+              border: currentColor === name 
+                ? `3px solid ${STYLES.colors.primary}` 
+                : '2px solid rgba(0,0,0,0.2)',
+              cursor: disabled ? 'not-allowed' : 'pointer',
+              transition: 'all 0.2s ease',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}
+            title={name.charAt(0).toUpperCase() + name.slice(1)}
+          >
+            {currentColor === name && (
+              <div
+                style={{
+                  width: '12px',
+                  height: '12px',
+                  backgroundColor: 'white',
+                  borderRadius: '50%',
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.3)'
+                }}
+              />
+            )}
+          </div>
+        </label>
+      ))}
+    </div>
+  );
+};
+
 const useModalForm = (editingGroup, onClose) => {
   const [groupName, setGroupName] = useState('');
   const [matchers, setMatchers] = useState([{ value: '', type: MATCHER_TYPES.PREFIX }]);
+  const [color, setColor] = useState('blue');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (editingGroup) {
       setGroupName(editingGroup.name);
+      setColor(editingGroup.color || 'blue');
       
       if (editingGroup.matchers) {
         setMatchers(editingGroup.matchers.map(matcher => ({ 
@@ -40,6 +120,7 @@ const useModalForm = (editingGroup, onClose) => {
   const resetForm = () => {
     setGroupName('');
     setMatchers([{ value: '', type: MATCHER_TYPES.PREFIX }]);
+    setColor('blue');
     setIsSubmitting(false);
   };
 
@@ -74,6 +155,8 @@ const useModalForm = (editingGroup, onClose) => {
     setGroupName,
     matchers,
     setMatchers,
+    color,
+    setColor,
     isSubmitting,
     setIsSubmitting,
     validateForm,
@@ -92,6 +175,8 @@ const CreateTabGroupModal = ({ isOpen, onClose, onCreateGroup, editingGroup }) =
     setGroupName,
     matchers,
     setMatchers,
+    color,
+    setColor,
     isSubmitting,
     setIsSubmitting,
     validateForm,
@@ -165,9 +250,9 @@ const CreateTabGroupModal = ({ isOpen, onClose, onCreateGroup, editingGroup }) =
     setIsSubmitting(true);
     try {
       if (editingGroup) {
-        await onCreateGroup(editingGroup.name, groupName.trim(), validMatchers);
+        await onCreateGroup(editingGroup.name, groupName.trim(), validMatchers, color);
       } else {
-        await onCreateGroup(groupName.trim(), validMatchers);
+        await onCreateGroup(groupName.trim(), validMatchers, color);
       }
       handleClose();
     } catch (error) {
@@ -384,6 +469,15 @@ const CreateTabGroupModal = ({ isOpen, onClose, onCreateGroup, editingGroup }) =
               value={groupName}
               onChange={(e) => setGroupName(e.target.value)}
               placeholder="e.g., React Documentation"
+              disabled={isSubmitting}
+            />
+          </div>
+
+          <div style={styles.field}>
+            <label style={styles.label}>Group Color</label>
+            <ColorRadioGroup
+              currentColor={color}
+              onColorChange={setColor}
               disabled={isSubmitting}
             />
           </div>

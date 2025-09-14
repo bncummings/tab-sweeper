@@ -19,7 +19,6 @@ const App = () => {
     error,
     createTabGroup,
     updateGroup,
-    updateGroupColor,
     deleteGroup
   } = useTabGroups();
 
@@ -280,7 +279,6 @@ const App = () => {
                   onEditGroup={handleEditGroup}
                   onDeleteGroup={deleteGroup}
                   onGroupTabs={handleGroupTabs}
-                  onUpdateGroupColor={updateGroupColor}
                   isGrouping={isGrouping}
                   color={userGroup?.color || 'blue'}
                 />
