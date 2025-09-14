@@ -38,12 +38,9 @@ describe('TabGroup', () => {
       />
     );
     
-    // Check for the group title and container
     expect(screen.getByTestId('tab-group-React Documentation')).toBeInTheDocument();
     expect(screen.getByTestId('tab-group-title-React Documentation')).toBeInTheDocument();
-    // Check for tab titles
     expect(screen.getByText('React API Reference')).toBeInTheDocument();
-    // Check for pathname
     expect(screen.getByText('/learn')).toBeInTheDocument();
     expect(screen.getByText('/reference')).toBeInTheDocument();
   });
@@ -59,10 +56,8 @@ describe('TabGroup', () => {
       />
     );
     
-    // Check that the group title is rendered
     expect(screen.getByTestId('tab-group-Empty Group')).toBeInTheDocument();
     expect(screen.getByTestId('tab-group-title-Empty Group')).toBeInTheDocument();
-    // Check that the empty message is displayed
     expect(screen.getByText('No tabs yet')).toBeInTheDocument();
   });
 
@@ -93,6 +88,7 @@ describe('TabGroup', () => {
     );
     
     fireEvent.click(screen.getByTestId('edit-group-button-Tab Group'));
+
     expect(mockOnEditGroup).toHaveBeenCalledWith('Tab Group');
   });
 
@@ -110,6 +106,7 @@ describe('TabGroup', () => {
     );
     
     fireEvent.click(screen.getByTestId('delete-group-button-Tab Group'));
+
     expect(window.confirm).toHaveBeenCalledWith('Are you sure you want to delete the "Tab Group" group?');
     expect(mockOnDeleteGroup).toHaveBeenCalledWith('Tab Group');
   });
@@ -128,6 +125,7 @@ describe('TabGroup', () => {
     );
     
     fireEvent.click(screen.getByTestId('delete-group-button-Tab Group'));
+
     expect(window.confirm).toHaveBeenCalledWith('Are you sure you want to delete the "Tab Group" group?');
     expect(mockOnDeleteGroup).not.toHaveBeenCalled();
   });
@@ -159,10 +157,10 @@ describe('TabGroup', () => {
         onDeleteGroup={mockOnDeleteGroup}
       />
     );
-    
-    // Check that the group exists and title element has the full title in its title attribute
-    expect(screen.getByTestId('tab-group-Very Long Tab Group Name That Should Be Truncated')).toBeInTheDocument();
+
     const heading = screen.getByTestId('tab-group-title-Very Long Tab Group Name That Should Be Truncated');
+    
+    expect(screen.getByTestId('tab-group-Very Long Tab Group Name That Should Be Truncated')).toBeInTheDocument();
     expect(heading).toHaveAttribute('title', 'Very Long Tab Group Name That Should Be Truncated');
   });
 
@@ -177,7 +175,6 @@ describe('TabGroup', () => {
       />
     );
     
-    // Check that short titles work correctly
     expect(screen.getByTestId('tab-group-Short')).toBeInTheDocument();
     expect(screen.getByTestId('tab-group-title-Short')).toBeInTheDocument();
   });
