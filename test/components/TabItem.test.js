@@ -25,9 +25,9 @@ describe('TabItem', () => {
     
     render(<TabItem tab={mockTab} onClick={mockClick} />);
     
-    const favicon = screen.getByAltText('favicon');
-    expect(favicon).toBeInTheDocument();
-    expect(favicon).toHaveAttribute('src', 'https://developer.mozilla.org/favicon.ico');
+
+    expect(screen.getByAltText('favicon')).toBeInTheDocument();
+    expect(screen.getByAltText('favicon')).toHaveAttribute('src', 'https://developer.mozilla.org/favicon.ico');
   });
 
   test('calls onClick when clicked', () => {
@@ -35,7 +35,6 @@ describe('TabItem', () => {
     
     render(<TabItem tab={mockTab} onClick={mockClick} />);
     
-    // Find the clickable div container
     const tabItem = screen.getByText('React Documentation').closest('div');
     fireEvent.click(tabItem);
     
