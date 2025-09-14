@@ -3,6 +3,7 @@ import rough from 'roughjs';
 import TabItem from './TabItem';
 import SketchyButton from './SketchyButton';
 import { STYLES } from '../constants.js';
+
 import groupIcon from '../../images/group.svg';
 
 const EditIcon = () => (
@@ -83,6 +84,7 @@ const ChevronIcon = ({ isExpanded }) => {
   );
 };
 
+
 const ActionButton = ({ variant, onClick, title, children, disabled, 'data-testid': dataTestId }) => (
   <SketchyButton
     variant={variant}
@@ -97,7 +99,7 @@ const ActionButton = ({ variant, onClick, title, children, disabled, 'data-testi
   </SketchyButton>
 );
 
-const TabGroup = ({ title, tabs, onTabClick, onEditGroup, onDeleteGroup, onGroupTabs, isGrouping }) => {
+const TabGroup = ({ title, tabs, onTabClick, onEditGroup, onDeleteGroup, onGroupTabs, isGrouping, color = 'blue' }) => {
   const svgRef = useRef(null);
   const containerRef = useRef(null);
   const [isHovered, setIsHovered] = useState(false);

@@ -5,14 +5,153 @@ import SketchyButton from './SketchyButton';
 import SketchyInput from './SketchyInput';
 import { MATCHER_TYPES, STYLES } from '../constants.js';
 
+// Chrome tab group colors - copied from TabGroup.jsx for consistency
+const CHROME_COLORS = [
+  { name: 'grey', hex: '#5F6368' },
+  { name: 'blue', hex: '#1A73E8' },
+  { name: 'red', hex: '#D93025' },
+  { name: 'yellow', hex: '#F9AB00' },
+  { name: 'green', hex: '#137333' },
+  { name: 'pink', hex: '#D01884' },
+  { name: 'purple', hex: '#9334E6' },
+  { name: 'cyan', hex: '#007B83' }
+];
+
+// Sketchy color button component using rough.js
+const SketchyColorButton = ({ color, isSelected, onSelect, disabled }) => {
+  const svgRef = useRef(null);
+  const containerRef = useRef(null);
+  const [isHovered, setIsHovered] = useState(false);
+  const [buttonId] = useState(Math.random().toString(36).substring(2, 9));
+  
+  const { name, hex } = color;
+
+  useEffect(() => {
+    if (svgRef.current && containerRef.current && !disabled) {
+      const svg = svgRef.current;
+      const container = containerRef.current;
+      
+      // Clear previous drawings
+      svg.innerHTML = '';
+      
+      const rc = rough.svg(svg);
+      const width = container.offsetWidth;
+      const height = container.offsetHeight;
+      
+      if (width > 0 && height > 0) {
+        const strokeWidth = isSelected ? 3 : (isHovered ? 2.5 : 2);
+        const strokeColor = isSelected ? '#000000' : 'rgba(0,0,0,0.15)';
+        const sketchyRect = rc.rectangle(2, 2, width - 4, height - 4, {
+          stroke: strokeColor,
+          strokeWidth: strokeWidth,
+          fill: hex,
+          fillStyle: 'zigzag',
+          fillWeight: 2,
+          hachureGap: 3,
+          hachureAngle: 45,
+          roughness: 1.0,
+          bowing: 0.6,
+          seed: buttonId.split('').reduce((a, b) => a + b.charCodeAt(0), 0)
+        });
+        
+        svg.appendChild(sketchyRect);
+      }
+    }
+  }, [isHovered, isSelected, disabled, buttonId, hex, name]);
+
+  const buttonStyles = {
+    position: 'relative',
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    background: 'transparent',
+    border: 'none',
+    cursor: disabled ? 'not-allowed' : 'pointer',
+    transition: 'all 0.2s ease',
+    opacity: disabled ? 0.5 : 1,
+    transform: isHovered && !disabled ? 'translateY(-1px)' : 'translateY(0)',
+    width: '32px',
+    height: '32px',
+    padding: '0',
+    minWidth: '32px',
+    minHeight: '32px'
+  };
+
+  const svgStyles = {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: '100%',
+    height: '100%',
+    pointerEvents: 'none',
+    zIndex: 0
+  };
+
+  const handleMouseEnter = () => {
+    if (!disabled) setIsHovered(true);
+  };
+
+  const handleMouseLeave = () => {
+    if (!disabled) setIsHovered(false);
+  };
+
+  const handleClick = () => {
+    if (!disabled && onSelect) {
+      onSelect(name);
+    }
+  };
+
+  return (
+    <button
+      ref={containerRef}
+      style={buttonStyles}
+      onClick={handleClick}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+      disabled={disabled}
+      title={name.charAt(0).toUpperCase() + name.slice(1)}
+      type="button"
+    >
+      {!disabled && <svg ref={svgRef} style={svgStyles} />}
+    </button>
+  );
+};
+
+// Color picker component with radio button style layout using sketchy buttons
+const ColorRadioGroup = ({ currentColor, onColorChange, disabled = false }) => {
+  return (
+    <div style={{
+      display: 'flex',
+      flexWrap: 'nowrap',
+      gap: '6px',
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingTop: '4px',
+      overflowX: 'auto'
+    }}>
+      {CHROME_COLORS.map((color) => (
+        <SketchyColorButton
+          key={color.name}
+          color={color}
+          isSelected={currentColor === color.name}
+          onSelect={onColorChange}
+          disabled={disabled}
+        />
+      ))}
+    </div>
+  );
+};
+
 const useModalForm = (editingGroup, onClose) => {
   const [groupName, setGroupName] = useState('');
   const [matchers, setMatchers] = useState([{ value: '', type: MATCHER_TYPES.PREFIX }]);
+  const [color, setColor] = useState('blue');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (editingGroup) {
       setGroupName(editingGroup.name);
+      setColor(editingGroup.color || 'blue');
       
       if (editingGroup.matchers) {
         setMatchers(editingGroup.matchers.map(matcher => ({ 
@@ -40,6 +179,7 @@ const useModalForm = (editingGroup, onClose) => {
   const resetForm = () => {
     setGroupName('');
     setMatchers([{ value: '', type: MATCHER_TYPES.PREFIX }]);
+    setColor('blue');
     setIsSubmitting(false);
   };
 
@@ -74,6 +214,8 @@ const useModalForm = (editingGroup, onClose) => {
     setGroupName,
     matchers,
     setMatchers,
+    color,
+    setColor,
     isSubmitting,
     setIsSubmitting,
     validateForm,
@@ -92,6 +234,8 @@ const CreateTabGroupModal = ({ isOpen, onClose, onCreateGroup, editingGroup }) =
     setGroupName,
     matchers,
     setMatchers,
+    color,
+    setColor,
     isSubmitting,
     setIsSubmitting,
     validateForm,
@@ -165,9 +309,9 @@ const CreateTabGroupModal = ({ isOpen, onClose, onCreateGroup, editingGroup }) =
     setIsSubmitting(true);
     try {
       if (editingGroup) {
-        await onCreateGroup(editingGroup.name, groupName.trim(), validMatchers);
+        await onCreateGroup(editingGroup.name, groupName.trim(), validMatchers, color);
       } else {
-        await onCreateGroup(groupName.trim(), validMatchers);
+        await onCreateGroup(groupName.trim(), validMatchers, color);
       }
       handleClose();
     } catch (error) {
@@ -384,6 +528,15 @@ const CreateTabGroupModal = ({ isOpen, onClose, onCreateGroup, editingGroup }) =
               value={groupName}
               onChange={(e) => setGroupName(e.target.value)}
               placeholder="e.g., React Documentation"
+              disabled={isSubmitting}
+            />
+          </div>
+
+          <div style={styles.field}>
+            <label style={styles.label}>Group Color</label>
+            <ColorRadioGroup
+              currentColor={color}
+              onColorChange={setColor}
               disabled={isSubmitting}
             />
           </div>
