@@ -19,6 +19,7 @@ const App = () => {
     error,
     createTabGroup,
     updateGroup,
+    updateGroupColor,
     deleteGroup
   } = useTabGroups();
 
@@ -48,7 +49,15 @@ const App = () => {
         
         const tabIds = tabs.map(({ id }) => id);
         const tabGroup = await chrome.tabs.group({ tabIds });
-        await chrome.tabGroups.update(tabGroup, { title: name });
+        
+        // Find the user group to get its color
+        const userGroup = userTabGroups.find(g => g.name === name);
+        const groupColor = userGroup?.color || 'blue';
+        
+        await chrome.tabGroups.update(tabGroup, { 
+          title: name,
+          color: groupColor
+        });
         
         /* Track which group contains the active tab */
         const containsActiveTab = tabs.some(tab => tab.id === activeTab.id);
@@ -260,18 +269,23 @@ const App = () => {
           </div>
         ) : (
           <div style={styles.tabGroupsContainer}>
-            {Object.entries(tabGroups).map(([groupName, tabs]) => (
-              <TabGroup
-                key={groupName}
-                title={groupName}
-                tabs={tabs}
-                onTabClick={handleTabClick}
-                onEditGroup={handleEditGroup}
-                onDeleteGroup={deleteGroup}
-                onGroupTabs={handleGroupTabs}
-                isGrouping={isGrouping}
-              />
-            ))}
+            {Object.entries(tabGroups).map(([groupName, tabs]) => {
+              const userGroup = userTabGroups.find(g => g.name === groupName);
+              return (
+                <TabGroup
+                  key={groupName}
+                  title={groupName}
+                  tabs={tabs}
+                  onTabClick={handleTabClick}
+                  onEditGroup={handleEditGroup}
+                  onDeleteGroup={deleteGroup}
+                  onGroupTabs={handleGroupTabs}
+                  onUpdateGroupColor={updateGroupColor}
+                  isGrouping={isGrouping}
+                  color={userGroup?.color || 'blue'}
+                />
+              );
+            })}
           </div>
         )}
       </main>

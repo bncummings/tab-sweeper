@@ -3,6 +3,18 @@ import rough from 'roughjs';
 import TabItem from './TabItem';
 import SketchyButton from './SketchyButton';
 import { STYLES } from '../constants.js';
+
+// Chrome tab group colors
+const CHROME_COLORS = [
+  { name: 'grey', hex: '#5F6368' },
+  { name: 'blue', hex: '#1A73E8' },
+  { name: 'red', hex: '#D93025' },
+  { name: 'yellow', hex: '#F9AB00' },
+  { name: 'green', hex: '#137333' },
+  { name: 'pink', hex: '#D01884' },
+  { name: 'purple', hex: '#9334E6' },
+  { name: 'cyan', hex: '#007B83' }
+];
 import groupIcon from '../../images/group.svg';
 
 const EditIcon = () => (
@@ -83,6 +95,72 @@ const ChevronIcon = ({ isExpanded }) => {
   );
 };
 
+const ColorPickerButton = ({ currentColor, onColorChange, title }) => {
+  const [showPicker, setShowPicker] = useState(false);
+  const currentColorHex = CHROME_COLORS.find(c => c.name === currentColor)?.hex || CHROME_COLORS[1].hex;
+
+  const handleColorSelect = (colorName) => {
+    onColorChange(colorName);
+    setShowPicker(false);
+  };
+
+  return (
+    <div style={{ position: 'relative' }}>
+      <SketchyButton
+        variant="secondary"
+        onClick={() => setShowPicker(!showPicker)}
+        title={title}
+        size="small"
+        style={{ width: '28px', height: '28px', padding: '6px' }}
+      >
+        <div
+          style={{
+            width: '12px',
+            height: '12px',
+            backgroundColor: currentColorHex,
+            borderRadius: '2px',
+            border: '1px solid rgba(0,0,0,0.2)'
+          }}
+        />
+      </SketchyButton>
+      {showPicker && (
+        <div
+          style={{
+            position: 'absolute',
+            top: '100%',
+            left: '0',
+            zIndex: 1000,
+            backgroundColor: 'white',
+            border: '1px solid #ccc',
+            borderRadius: '4px',
+            padding: '8px',
+            display: 'grid',
+            gridTemplateColumns: 'repeat(4, 1fr)',
+            gap: '4px',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
+          }}
+        >
+          {CHROME_COLORS.map(({ name, hex }) => (
+            <button
+              key={name}
+              onClick={() => handleColorSelect(name)}
+              style={{
+                width: '20px',
+                height: '20px',
+                backgroundColor: hex,
+                border: currentColor === name ? '2px solid #000' : '1px solid rgba(0,0,0,0.2)',
+                borderRadius: '3px',
+                cursor: 'pointer'
+              }}
+              title={name}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
 const ActionButton = ({ variant, onClick, title, children, disabled, 'data-testid': dataTestId }) => (
   <SketchyButton
     variant={variant}
@@ -97,7 +175,7 @@ const ActionButton = ({ variant, onClick, title, children, disabled, 'data-testi
   </SketchyButton>
 );
 
-const TabGroup = ({ title, tabs, onTabClick, onEditGroup, onDeleteGroup, onGroupTabs, isGrouping }) => {
+const TabGroup = ({ title, tabs, onTabClick, onEditGroup, onDeleteGroup, onGroupTabs, onUpdateGroupColor, isGrouping, color = 'blue' }) => {
   const svgRef = useRef(null);
   const containerRef = useRef(null);
   const [isHovered, setIsHovered] = useState(false);
@@ -267,6 +345,11 @@ const TabGroup = ({ title, tabs, onTabClick, onEditGroup, onDeleteGroup, onGroup
           {getTruncatedTitle(title)}
         </h2>
         <div style={styles.actions} onClick={(e) => e.stopPropagation()}>
+          <ColorPickerButton
+            currentColor={color}
+            onColorChange={(newColor) => onUpdateGroupColor(title, newColor)}
+            title="Change group color"
+          />
           <ActionButton
             variant="primary"
             onClick={() => onGroupTabs(title)}

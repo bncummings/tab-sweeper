@@ -24,6 +24,9 @@ const convertLegacyGroupFormat = (tabGroup) => {
     }));
   }
   
+  // Preserve color if it exists, default to blue
+  group.color = tabGroup.color || 'blue';
+  
   return group;
 };
 
@@ -59,6 +62,7 @@ export const useTabGroups = () => {
                 manualGroups.push({
                   name: group.title,
                   matchers: matchers,
+                  color: group.color || 'blue',
                   isManual: true // Flag to indicate this was detected from Chrome
                 });
               }
@@ -165,7 +169,7 @@ export const useTabGroups = () => {
     }
   }, [detectManualTabGroups, syncWithChromeTabGroups]);
 
-  const createTabGroup = useCallback(async (groupName, matchers) => {
+  const createTabGroup = useCallback(async (groupName, matchers, color = 'blue') => {
     const validMatchers = matchers
       .filter(m => m.type !== 'prefix' || isValidUrl(m.value.trim()))
       .map(m => ({ value: m.value.trim(), type: m.type }));
@@ -175,7 +179,7 @@ export const useTabGroups = () => {
       return;
     }
     
-    const newTabGroup = { name: groupName, matchers: validMatchers };
+    const newTabGroup = { name: groupName, matchers: validMatchers, color };
     const updatedTabGroups = [...userTabGroups, newTabGroup];
     
     await storage.saveTabGroups(updatedTabGroups);
@@ -188,7 +192,18 @@ export const useTabGroups = () => {
     setTabGroups(prev => ({ ...prev, [groupName]: sortedTabs }));
   }, [userTabGroups]);
 
-  const updateGroup = useCallback(async (originalName, newName, matchers) => {
+  const updateGroupColor = useCallback(async (groupName, color) => {
+    const updatedTabGroups = userTabGroups.map(group => 
+      group.name === groupName 
+        ? { ...group, color }
+        : group
+    );
+    
+    await storage.saveTabGroups(updatedTabGroups);
+    setUserTabGroups(updatedTabGroups);
+  }, [userTabGroups]);
+
+  const updateGroup = useCallback(async (originalName, newName, matchers, color) => {
     const validMatchers = matchers
       .filter(m => m.type !== 'prefix' || isValidUrl(m.value.trim()))
       .map(m => ({ value: m.value.trim(), type: m.type }));
@@ -200,7 +215,7 @@ export const useTabGroups = () => {
     
     const updatedTabGroups = userTabGroups.map(group => 
       group.name === originalName 
-        ? { name: newName, matchers: validMatchers }
+        ? { name: newName, matchers: validMatchers, color: color || group.color || 'blue' }
         : group
     );
     
@@ -264,6 +279,7 @@ export const useTabGroups = () => {
     error,
     createTabGroup,
     updateGroup,
+    updateGroupColor,
     deleteGroup,
     syncWithChromeTabGroups
   };
