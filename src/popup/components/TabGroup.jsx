@@ -4,17 +4,6 @@ import TabItem from './TabItem';
 import SketchyButton from './SketchyButton';
 import { STYLES } from '../constants.js';
 
-// Chrome tab group colors
-const CHROME_COLORS = [
-  { name: 'grey', hex: '#5F6368' },
-  { name: 'blue', hex: '#1A73E8' },
-  { name: 'red', hex: '#D93025' },
-  { name: 'yellow', hex: '#F9AB00' },
-  { name: 'green', hex: '#137333' },
-  { name: 'pink', hex: '#D01884' },
-  { name: 'purple', hex: '#9334E6' },
-  { name: 'cyan', hex: '#007B83' }
-];
 import groupIcon from '../../images/group.svg';
 
 const EditIcon = () => (

@@ -35,17 +35,12 @@ const SketchyColorButton = ({ color, isSelected, onSelect, disabled }) => {
       svg.innerHTML = '';
       
       const rc = rough.svg(svg);
-      
-      // Get actual dimensions for drawing
       const width = container.offsetWidth;
       const height = container.offsetHeight;
       
       if (width > 0 && height > 0) {
-        // Determine stroke properties based on selection and hover state
         const strokeWidth = isSelected ? 3 : (isHovered ? 2.5 : 2);
-        const strokeColor = isSelected ? STYLES.colors.primary : 'rgba(0,0,0,0.3)';
-        
-        // Draw sketchy rectangle with color fill
+        const strokeColor = isSelected ? '#000000' : 'rgba(0,0,0,0.15)';
         const sketchyRect = rc.rectangle(2, 2, width - 4, height - 4, {
           stroke: strokeColor,
           strokeWidth: strokeWidth,
@@ -57,25 +52,6 @@ const SketchyColorButton = ({ color, isSelected, onSelect, disabled }) => {
         });
         
         svg.appendChild(sketchyRect);
-
-        // Draw selection indicator if selected
-        if (isSelected) {
-          const centerX = width / 2;
-          const centerY = height / 2;
-          const indicatorSize = 8;
-          
-          const indicator = rc.circle(centerX, centerY, indicatorSize, {
-            stroke: 'white',
-            strokeWidth: 2,
-            fill: 'white',
-            fillStyle: 'solid',
-            roughness: 0.8,
-            bowing: 0.4,
-            seed: buttonId.split('').reduce((a, b) => a + b.charCodeAt(0), 1)
-          });
-          
-          svg.appendChild(indicator);
-        }
       }
     }
   }, [isHovered, isSelected, disabled, buttonId, hex, name]);
@@ -91,11 +67,11 @@ const SketchyColorButton = ({ color, isSelected, onSelect, disabled }) => {
     transition: 'all 0.2s ease',
     opacity: disabled ? 0.5 : 1,
     transform: isHovered && !disabled ? 'translateY(-1px)' : 'translateY(0)',
-    width: '40px',
-    height: '40px',
+    width: '32px',
+    height: '32px',
     padding: '0',
-    minWidth: '40px',
-    minHeight: '40px'
+    minWidth: '32px',
+    minHeight: '32px'
   };
 
   const svgStyles = {
@@ -143,10 +119,12 @@ const ColorRadioGroup = ({ currentColor, onColorChange, disabled = false }) => {
   return (
     <div style={{
       display: 'flex',
-      flexWrap: 'wrap',
-      gap: '10px',
+      flexWrap: 'nowrap',
+      gap: '6px',
       alignItems: 'center',
-      paddingTop: '4px'
+      justifyContent: 'center',
+      paddingTop: '4px',
+      overflowX: 'auto'
     }}>
       {CHROME_COLORS.map((color) => (
         <SketchyColorButton
