@@ -83,7 +83,7 @@ const ChevronIcon = ({ isExpanded }) => {
   );
 };
 
-const ActionButton = ({ variant, onClick, title, children, disabled }) => (
+const ActionButton = ({ variant, onClick, title, children, disabled, 'data-testid': dataTestId }) => (
   <SketchyButton
     variant={variant}
     onClick={onClick}
@@ -91,6 +91,7 @@ const ActionButton = ({ variant, onClick, title, children, disabled }) => (
     size="small"
     disabled={disabled}
     style={{ width: '28px', height: '28px', padding: '6px' }}
+    data-testid={dataTestId}
   >
     {children}
   </SketchyButton>
@@ -257,10 +258,11 @@ const TabGroup = ({ title, tabs, onTabClick, onEditGroup, onDeleteGroup, onGroup
       style={styles.container}
       onMouseEnter={handleContainerMouseEnter}
       onMouseLeave={handleContainerMouseLeave}
+      data-testid={`tab-group-${title}`}
     >
       <svg ref={svgRef} style={styles.svg} />
       <div style={styles.titleWithActions} onClick={toggleExpanded}>
-        <h2 style={styles.titleText} title={title}>
+        <h2 style={styles.titleText} title={title} data-testid={`tab-group-title-${title}`}>
           <ChevronIcon isExpanded={isExpanded} />
           {getTruncatedTitle(title)}
         </h2>
@@ -270,6 +272,7 @@ const TabGroup = ({ title, tabs, onTabClick, onEditGroup, onDeleteGroup, onGroup
             onClick={() => onGroupTabs(title)}
             disabled={isGrouping}
             title={`Group tabs matching "${title}" pattern`}
+            data-testid={`group-tabs-button-${title}`}
           >
             <GroupIcon />
           </ActionButton>
@@ -277,6 +280,7 @@ const TabGroup = ({ title, tabs, onTabClick, onEditGroup, onDeleteGroup, onGroup
             variant="secondary"
             onClick={() => onEditGroup(title)}
             title="Edit group"
+            data-testid={`edit-group-button-${title}`}
           >
             <EditIcon />
           </ActionButton>
@@ -284,6 +288,7 @@ const TabGroup = ({ title, tabs, onTabClick, onEditGroup, onDeleteGroup, onGroup
             variant="danger"
             onClick={handleDeleteClick}
             title="Delete group"
+            data-testid={`delete-group-button-${title}`}
           >
             <DeleteIcon />
           </ActionButton>

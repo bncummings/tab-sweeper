@@ -35,9 +35,9 @@ describe('TabItem', () => {
     
     render(<TabItem tab={mockTab} onClick={mockClick} />);
     
-    // Find the clickable div container
-    const tabItem = screen.getByText('React Documentation').closest('div');
-    fireEvent.click(tabItem);
+    fireEvent.click(
+      screen.getByText('React Documentation').closest('div')
+    );
     
     expect(mockClick).toHaveBeenCalledTimes(1);
   });

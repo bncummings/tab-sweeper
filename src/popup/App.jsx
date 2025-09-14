@@ -211,6 +211,7 @@ const App = () => {
               title="Group all tabs"
               size="medium"
               strokeColor="rgba(120, 120, 120, 1)"
+              data-testid="group-all-button"
               style={{ 
                 color: STYLES.colors.primary,
                 fontSize: '14px',
@@ -230,6 +231,7 @@ const App = () => {
               title="Create new tab group"
               size="medium"
               strokeColor="rgba(120, 120, 120, 1)"
+              data-testid="create-group-button"
               style={{ 
                 color: STYLES.colors.primary,
                 fontSize: '22px',

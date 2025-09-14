@@ -125,6 +125,7 @@ const TabItem = ({ tab, onClick }) => {
       onClick={() => onClick(tab)}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
+      data-testid={`tab-item-${tab.id}`}
     >
       <svg ref={svgRef} style={styles.svg} />
       <div style={styles.content}>

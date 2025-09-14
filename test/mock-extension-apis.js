@@ -6,10 +6,12 @@ global.chrome = {
     group: jest.fn().mockResolvedValue(1)
   },
   windows: {
-    update: jest.fn().mockResolvedValue({})
+    update: jest.fn().mockResolvedValue({}),
+    getAll: jest.fn().mockResolvedValue([])
   },
   tabGroups: {
-    update: jest.fn().mockResolvedValue({})
+    update: jest.fn().mockResolvedValue({}),
+    query: jest.fn().mockResolvedValue([])
   },
   storage: {
     local: {

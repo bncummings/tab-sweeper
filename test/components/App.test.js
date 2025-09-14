@@ -3,7 +3,7 @@ import { render, screen, fireEvent, waitFor, act } from '@testing-library/react'
 import '@testing-library/jest-dom';
 import App from '../../src/popup/App';
 
-// Mock the tabs module
+/* Mock the tabs module */
 jest.mock('../../src/popup/tabs.js', () => ({
   createGroup: jest.fn((name) => ({
     name,
@@ -16,12 +16,12 @@ describe('App', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     
-    // Mock chrome.storage.local
+    /* Mock chrome.storage.local */
     global.chrome.storage.local.get.mockResolvedValue({
       tabGroups: []
     });
     
-    // Mock chrome.tabs.query
+    /* Mock chrome.tabs.query */
     global.chrome.tabs.query.mockResolvedValue([
       {
         id: 1,
@@ -33,36 +33,30 @@ describe('App', () => {
   });
 
   test('renders plus button to create new group', async () => {
-    await act(async () => {
-      render(<App />);
-    });
+    render(<App />);
     
     await waitFor(() => {
-      expect(screen.getByText('+')).toBeInTheDocument();
+      expect(screen.getByTestId('create-group-button')).toBeInTheDocument();
     });
   });
 
   test('renders group tabs button', async () => {
-    await act(async () => {
-      render(<App />);
-    });
+    render(<App />);
     
     await waitFor(() => {
-      expect(screen.getByText('Group All')).toBeInTheDocument();
+      expect(screen.getByTestId('group-all-button')).toBeInTheDocument();
     });
   });
 
   test('opens modal when plus button is clicked', async () => {
-    await act(async () => {
-      render(<App />);
-    });
+    render(<App />);
     
     await waitFor(() => {
-      expect(screen.getByText('+')).toBeInTheDocument();
+      expect(screen.getByTestId('create-group-button')).toBeInTheDocument();
     });
     
     await act(async () => {
-      fireEvent.click(screen.getByText('+'));
+      fireEvent.click(screen.getByTestId('create-group-button'));
     });
     
     await waitFor(() => {
@@ -71,89 +65,73 @@ describe('App', () => {
   });
 
   test('loads and displays tab groups from storage', async () => {
-    const mockTabGroups = [
-      {
-        name: 'Tab Group',
-        urlPrefixes: ['https://example.com/']
-      }
-    ];
     
     global.chrome.storage.local.get.mockResolvedValue({
-      tabGroups: mockTabGroups
+      tabGroups: [
+        {
+          name: 'Tab Group',
+          urlPrefixes: ['https://example.com/']
+        }
+      ]
     });
     
-    await act(async () => {
-      render(<App />);
-    });
+   render(<App />);
     
     await waitFor(() => {
-      expect(screen.getByRole('heading', { level: 2, name: 'Tab Grou...' })).toBeInTheDocument();
+      expect(screen.getByTestId('tab-group-Tab Group')).toBeInTheDocument();
     });
   });
 
   test('handles backwards compatibility with single urlPrefix', async () => {
-    const mockTabGroups = [
-      {
-        name: 'Legacy Group',
-        urlPrefix: 'https://legacy.com/' // Old format
-      }
-    ];
-    
     global.chrome.storage.local.get.mockResolvedValue({
-      tabGroups: mockTabGroups
+      tabGroups: [
+        {
+          name: 'Legacy Group',
+          urlPrefix: 'https://legacy.com/'
+        }
+      ]
     });
     
-    await act(async () => {
-      render(<App />);
-    });
+    render(<App />);
     
     await waitFor(() => {
-      expect(screen.getByRole('heading', { level: 2, name: 'Legacy G...' })).toBeInTheDocument();
+      expect(screen.getByTestId('tab-group-Legacy Group')).toBeInTheDocument();
     });
   });
 
   test('shows loading state initially', async () => {
-    // Make the storage call slow to ensure we can see the loading state
+    /* Make the storage call slow to ensure we can see the loading state */
     global.chrome.storage.local.get.mockImplementation(() => 
       new Promise(resolve => setTimeout(() => resolve({ tabGroups: [] }), 100))
     );
     
-    await act(async () => {
-      render(<App />);
-    });
+    render(<App />);
     
     expect(screen.getByText('Loading tabs...')).toBeInTheDocument();
     
-    // Wait for loading to complete
+    /* Wait for loading to complete */
     await waitFor(() => {
       expect(screen.queryByText('Loading tabs...')).not.toBeInTheDocument();
     });
   });
 
   test('shows error state when chrome APIs fail', async () => {
-    // Suppress the expected console error during this test
+    /* Suppress the expected console error during this test */
     const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
-    
-    // Mock chrome.storage.local.get to fail
     global.chrome.storage.local.get.mockRejectedValue(new Error('API Error'));
-    
-    await act(async () => {
-      render(<App />);
-    });
+
+    render(<App />);
     
     await waitFor(() => {
       expect(screen.getByText(/Error: API Error/)).toBeInTheDocument();
+      expect(consoleSpy).toHaveBeenCalledWith('Error initializing tab groups:', expect.any(Error));
+
     }, { timeout: 2000 });
-    
-    // Verify the console error was called (but suppressed)
-    expect(consoleSpy).toHaveBeenCalledWith('Error initializing tab groups:', expect.any(Error));
-    
-    // Restore console.error
+        
     consoleSpy.mockRestore();
   });
 
   test('displays default groups', async () => {
-    // Mock some stored tab groups to simulate user-created groups
     global.chrome.storage.local.get.mockResolvedValue({
       tabGroups: [
         {
@@ -167,7 +145,6 @@ describe('App', () => {
       ]
     });
 
-    // Mock chrome.tabs.query to return matching tabs
     global.chrome.tabs.query.mockResolvedValue([
       { 
         id: 1, 
@@ -183,30 +160,26 @@ describe('App', () => {
       }
     ]);
     
-    await act(async () => {
-      render(<App />);
-    });
+    render(<App />);
     
     await waitFor(() => {
-      expect(screen.getByRole('heading', { level: 2, name: 'Search E...' })).toBeInTheDocument();
-      expect(screen.getByRole('heading', { level: 2, name: 'Document...' })).toBeInTheDocument();
+      expect(screen.getByTestId('tab-group-Search Engines')).toBeInTheDocument();
+      expect(screen.getByTestId('tab-group-Documentation')).toBeInTheDocument();
     }, { timeout: 2000 });
   });
 
-  test('ignores invalid URLs when creating groups', async () => {
-    const mockTabGroups = [
-      {
-        name: 'Mixed Valid/Invalid',
-        matchers: [
-          { value: 'https://valid.com/', type: 'prefix' },
-          { value: 'invalid-url', type: 'prefix' },
-          { value: '^https://.*\\.github\\.io/.*', type: 'regex' }
-        ]
-      }
-    ];
-    
+  test('ignores invalid URLs when creating groups', async () => {    
     global.chrome.storage.local.get.mockResolvedValue({
-      tabGroups: mockTabGroups
+      tabGroups: [
+        {
+          name: 'Mixed Valid/Invalid',
+          matchers: [
+            { value: 'https://valid.com/', type: 'prefix' },
+            { value: 'invalid-url', type: 'prefix' },
+            { value: '^https://.*\\.github\\.io/.*', type: 'regex' }
+          ]
+        }
+      ]
     });
     
     global.chrome.tabs.query.mockResolvedValue([
@@ -224,19 +197,16 @@ describe('App', () => {
       }
     ]);
     
-    await act(async () => {
-      render(<App />);
-    });
+    render(<App />);
     
     await waitFor(() => {
-      expect(screen.getByRole('heading', { level: 2, name: 'Mixed Va...' })).toBeInTheDocument();
+      expect(screen.getByTestId('tab-group-Mixed Valid/Invalid')).toBeInTheDocument();
       expect(screen.getByText('Valid Site')).toBeInTheDocument();
       expect(screen.getByText('GitHub Page')).toBeInTheDocument();
     });
   });
 
   test('creates regex-based tab groups', async () => {
-    // Mock chrome.storage.local.get to return a regex group
     chrome.storage.local.get.mockResolvedValue({
       tabGroups: [
         { 
@@ -246,7 +216,6 @@ describe('App', () => {
       ]
     });
     
-    // Mock chrome.tabs.query to return some tabs
     chrome.tabs.query.mockResolvedValue([
       {
         id: 1,
@@ -262,21 +231,17 @@ describe('App', () => {
       }
     ]);
     
-    await act(async () => {
-      render(<App />);
-    });
-    
+    render(<App />);
+
     await waitFor(() => {
-      expect(screen.getByRole('heading', { level: 2, name: 'GitHub P...' })).toBeInTheDocument();
+      expect(screen.getByTestId('tab-group-GitHub Pages')).toBeInTheDocument();
       expect(screen.getByText('My GitHub Page')).toBeInTheDocument();
     });
     
-    // The non-matching tab should not be in the group
     expect(screen.queryByText('Another Site')).not.toBeInTheDocument();
   });
 
   test('creates glob-based tab groups', async () => {
-    // Mock chrome.storage.local.get to return a glob group
     chrome.storage.local.get.mockResolvedValue({
       tabGroups: [
         { 
@@ -286,7 +251,6 @@ describe('App', () => {
       ]
     });
     
-    // Mock chrome.tabs.query to return some tabs
     chrome.tabs.query.mockResolvedValue([
       {
         id: 1,
@@ -308,17 +272,14 @@ describe('App', () => {
       }
     ]);
     
-    await act(async () => {
-      render(<App />);
-    });
+    render(<App />);
     
     await waitFor(() => {
-      expect(screen.getByRole('heading', { level: 2, name: 'Document...' })).toBeInTheDocument();
+      expect(screen.getByTestId('tab-group-Documentation Sites')).toBeInTheDocument();
       expect(screen.getByText('React Docs')).toBeInTheDocument();
       expect(screen.getByText('Vue Docs')).toBeInTheDocument();
     });
     
-    // The non-matching tab should not be in the group
     expect(screen.queryByText('Other Site')).not.toBeInTheDocument();
   });
 });

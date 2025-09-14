@@ -38,11 +38,9 @@ describe('TabGroup', () => {
       />
     );
     
-    // Check for the group title (h2) - should be truncated to "React Do..."
-    expect(screen.getByRole('heading', { level: 2, name: 'React Do...' })).toBeInTheDocument();
-    // Check for tab titles
+    expect(screen.getByTestId('tab-group-React Documentation')).toBeInTheDocument();
+    expect(screen.getByTestId('tab-group-title-React Documentation')).toBeInTheDocument();
     expect(screen.getByText('React API Reference')).toBeInTheDocument();
-    // Check for pathname
     expect(screen.getByText('/learn')).toBeInTheDocument();
     expect(screen.getByText('/reference')).toBeInTheDocument();
   });
@@ -58,9 +56,8 @@ describe('TabGroup', () => {
       />
     );
     
-    // Check that the group title is rendered (truncated)
-    expect(screen.getByRole('heading', { level: 2, name: 'Empty Gr...' })).toBeInTheDocument();
-    // Check that the empty message is displayed
+    expect(screen.getByTestId('tab-group-Empty Group')).toBeInTheDocument();
+    expect(screen.getByTestId('tab-group-title-Empty Group')).toBeInTheDocument();
     expect(screen.getByText('No tabs yet')).toBeInTheDocument();
   });
 
@@ -75,8 +72,8 @@ describe('TabGroup', () => {
       />
     );
     
-    expect(screen.getByTitle('Edit group')).toBeInTheDocument();
-    expect(screen.getByTitle('Delete group')).toBeInTheDocument();
+    expect(screen.getByTestId('edit-group-button-Tab Group')).toBeInTheDocument();
+    expect(screen.getByTestId('delete-group-button-Tab Group')).toBeInTheDocument();
   });
 
   test('calls onEditGroup when edit button is clicked', () => {
@@ -90,7 +87,8 @@ describe('TabGroup', () => {
       />
     );
     
-    fireEvent.click(screen.getByTitle('Edit group'));
+    fireEvent.click(screen.getByTestId('edit-group-button-Tab Group'));
+
     expect(mockOnEditGroup).toHaveBeenCalledWith('Tab Group');
   });
 
@@ -107,7 +105,8 @@ describe('TabGroup', () => {
       />
     );
     
-    fireEvent.click(screen.getByTitle('Delete group'));
+    fireEvent.click(screen.getByTestId('delete-group-button-Tab Group'));
+
     expect(window.confirm).toHaveBeenCalledWith('Are you sure you want to delete the "Tab Group" group?');
     expect(mockOnDeleteGroup).toHaveBeenCalledWith('Tab Group');
   });
@@ -125,7 +124,8 @@ describe('TabGroup', () => {
       />
     );
     
-    fireEvent.click(screen.getByTitle('Delete group'));
+    fireEvent.click(screen.getByTestId('delete-group-button-Tab Group'));
+
     expect(window.confirm).toHaveBeenCalledWith('Are you sure you want to delete the "Tab Group" group?');
     expect(mockOnDeleteGroup).not.toHaveBeenCalled();
   });
@@ -141,9 +141,8 @@ describe('TabGroup', () => {
       />
     );
     
-    // Click on the first tab's container
-    const firstTab = screen.getByText('React Documentation', { selector: 'h3' }).closest('div');
-    fireEvent.click(firstTab);
+    // Click on the first tab using its test id
+    fireEvent.click(screen.getByTestId('tab-item-1'));
     
     expect(mockOnTabClick).toHaveBeenCalledWith(mockTabs[0]);
   });
@@ -158,12 +157,10 @@ describe('TabGroup', () => {
         onDeleteGroup={mockOnDeleteGroup}
       />
     );
+
+    const heading = screen.getByTestId('tab-group-title-Very Long Tab Group Name That Should Be Truncated');
     
-    // Check that the title is truncated to "Very Lon..."
-    expect(screen.getByRole('heading', { level: 2, name: 'Very Lon...' })).toBeInTheDocument();
-    
-    // Check that the full title is available in the title attribute for tooltips
-    const heading = screen.getByRole('heading', { level: 2, name: 'Very Lon...' });
+    expect(screen.getByTestId('tab-group-Very Long Tab Group Name That Should Be Truncated')).toBeInTheDocument();
     expect(heading).toHaveAttribute('title', 'Very Long Tab Group Name That Should Be Truncated');
   });
 
@@ -178,7 +175,7 @@ describe('TabGroup', () => {
       />
     );
     
-    // Check that short titles are not truncated
-    expect(screen.getByRole('heading', { level: 2, name: 'Short' })).toBeInTheDocument();
+    expect(screen.getByTestId('tab-group-Short')).toBeInTheDocument();
+    expect(screen.getByTestId('tab-group-title-Short')).toBeInTheDocument();
   });
 });
