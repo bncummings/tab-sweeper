@@ -45,8 +45,11 @@ const SketchyColorButton = ({ color, isSelected, onSelect, disabled }) => {
           stroke: strokeColor,
           strokeWidth: strokeWidth,
           fill: hex,
-          fillStyle: 'solid',
-          roughness: 1.1,
+          fillStyle: 'zigzag',
+          fillWeight: 2,
+          hachureGap: 3,
+          hachureAngle: 45,
+          roughness: 1.0,
           bowing: 0.6,
           seed: buttonId.split('').reduce((a, b) => a + b.charCodeAt(0), 0)
         });
