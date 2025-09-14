@@ -17,67 +17,145 @@ const CHROME_COLORS = [
   { name: 'cyan', hex: '#007B83' }
 ];
 
-// Color picker component with radio button style layout
+// Sketchy color button component using rough.js
+const SketchyColorButton = ({ color, isSelected, onSelect, disabled }) => {
+  const svgRef = useRef(null);
+  const containerRef = useRef(null);
+  const [isHovered, setIsHovered] = useState(false);
+  const [buttonId] = useState(Math.random().toString(36).substring(2, 9));
+  
+  const { name, hex } = color;
+
+  useEffect(() => {
+    if (svgRef.current && containerRef.current && !disabled) {
+      const svg = svgRef.current;
+      const container = containerRef.current;
+      
+      // Clear previous drawings
+      svg.innerHTML = '';
+      
+      const rc = rough.svg(svg);
+      
+      // Get actual dimensions for drawing
+      const width = container.offsetWidth;
+      const height = container.offsetHeight;
+      
+      if (width > 0 && height > 0) {
+        // Determine stroke properties based on selection and hover state
+        const strokeWidth = isSelected ? 3 : (isHovered ? 2.5 : 2);
+        const strokeColor = isSelected ? STYLES.colors.primary : 'rgba(0,0,0,0.3)';
+        
+        // Draw sketchy rectangle with color fill
+        const sketchyRect = rc.rectangle(2, 2, width - 4, height - 4, {
+          stroke: strokeColor,
+          strokeWidth: strokeWidth,
+          fill: hex,
+          fillStyle: 'solid',
+          roughness: 1.1,
+          bowing: 0.6,
+          seed: buttonId.split('').reduce((a, b) => a + b.charCodeAt(0), 0)
+        });
+        
+        svg.appendChild(sketchyRect);
+
+        // Draw selection indicator if selected
+        if (isSelected) {
+          const centerX = width / 2;
+          const centerY = height / 2;
+          const indicatorSize = 8;
+          
+          const indicator = rc.circle(centerX, centerY, indicatorSize, {
+            stroke: 'white',
+            strokeWidth: 2,
+            fill: 'white',
+            fillStyle: 'solid',
+            roughness: 0.8,
+            bowing: 0.4,
+            seed: buttonId.split('').reduce((a, b) => a + b.charCodeAt(0), 1)
+          });
+          
+          svg.appendChild(indicator);
+        }
+      }
+    }
+  }, [isHovered, isSelected, disabled, buttonId, hex, name]);
+
+  const buttonStyles = {
+    position: 'relative',
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    background: 'transparent',
+    border: 'none',
+    cursor: disabled ? 'not-allowed' : 'pointer',
+    transition: 'all 0.2s ease',
+    opacity: disabled ? 0.5 : 1,
+    transform: isHovered && !disabled ? 'translateY(-1px)' : 'translateY(0)',
+    width: '40px',
+    height: '40px',
+    padding: '0',
+    minWidth: '40px',
+    minHeight: '40px'
+  };
+
+  const svgStyles = {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: '100%',
+    height: '100%',
+    pointerEvents: 'none',
+    zIndex: 0
+  };
+
+  const handleMouseEnter = () => {
+    if (!disabled) setIsHovered(true);
+  };
+
+  const handleMouseLeave = () => {
+    if (!disabled) setIsHovered(false);
+  };
+
+  const handleClick = () => {
+    if (!disabled && onSelect) {
+      onSelect(name);
+    }
+  };
+
+  return (
+    <button
+      ref={containerRef}
+      style={buttonStyles}
+      onClick={handleClick}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+      disabled={disabled}
+      title={name.charAt(0).toUpperCase() + name.slice(1)}
+      type="button"
+    >
+      {!disabled && <svg ref={svgRef} style={svgStyles} />}
+    </button>
+  );
+};
+
+// Color picker component with radio button style layout using sketchy buttons
 const ColorRadioGroup = ({ currentColor, onColorChange, disabled = false }) => {
   return (
     <div style={{
       display: 'flex',
       flexWrap: 'wrap',
-      gap: '8px',
-      alignItems: 'center'
+      gap: '10px',
+      alignItems: 'center',
+      paddingTop: '4px'
     }}>
-      {CHROME_COLORS.map(({ name, hex }) => (
-        <label
-          key={name}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            cursor: disabled ? 'not-allowed' : 'pointer',
-            opacity: disabled ? 0.6 : 1
-          }}
-        >
-          <input
-            type="radio"
-            name="groupColor"
-            value={name}
-            checked={currentColor === name}
-            onChange={() => !disabled && onColorChange(name)}
-            disabled={disabled}
-            style={{
-              display: 'none' // Hide the default radio button
-            }}
-          />
-          <div
-            style={{
-              position: 'relative',
-              width: '32px',
-              height: '32px',
-              backgroundColor: hex,
-              borderRadius: '6px',
-              border: currentColor === name 
-                ? `3px solid ${STYLES.colors.primary}` 
-                : '2px solid rgba(0,0,0,0.2)',
-              cursor: disabled ? 'not-allowed' : 'pointer',
-              transition: 'all 0.2s ease',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center'
-            }}
-            title={name.charAt(0).toUpperCase() + name.slice(1)}
-          >
-            {currentColor === name && (
-              <div
-                style={{
-                  width: '12px',
-                  height: '12px',
-                  backgroundColor: 'white',
-                  borderRadius: '50%',
-                  boxShadow: '0 1px 3px rgba(0,0,0,0.3)'
-                }}
-              />
-            )}
-          </div>
-        </label>
+      {CHROME_COLORS.map((color) => (
+        <SketchyColorButton
+          key={color.name}
+          color={color}
+          isSelected={currentColor === color.name}
+          onSelect={onColorChange}
+          disabled={disabled}
+        />
       ))}
     </div>
   );
