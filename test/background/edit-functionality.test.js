@@ -1,326 +1,317 @@
-describe('Edit Group Functionality', () => {
-  describe('useModalForm hook simulation', () => {
-    // Simulate the useEffect logic in CreateTabGroupModal when editingGroup is set
-    const simulateEditLoad = (editingGroup) => {
-      let matchers = [];
-      
-      if (editingGroup.matchers) {
-        // New format with mixed matchers - use directly
-        matchers = editingGroup.matchers.map(matcher => ({ 
-          value: matcher.value, 
-          type: matcher.type 
-        }));
-      } else if (editingGroup.matchType === 'regex' && editingGroup.regexPatterns) {
-        // Legacy regex format
-        matchers = editingGroup.regexPatterns.map(pattern => ({ 
-          value: pattern, 
-          type: 'regex' 
-        }));
-      } else if (editingGroup.urlPrefixes) {
-        // Legacy URL prefixes format
-        matchers = editingGroup.urlPrefixes.map(prefix => ({ 
-          value: prefix, 
-          type: 'prefix' 
-        }));
-      } else if (editingGroup.urlPrefix) {
-        // Legacy single urlPrefix format
-        matchers = [{ value: editingGroup.urlPrefix, type: 'prefix' }];
-      } else {
-        matchers = [{ value: '', type: 'prefix' }];
-      }
-      
-      return {
-        groupName: editingGroup.name,
-        matchers: matchers
+/** */
+const simulateEditLoad = (editingGroup) => {
+  const getMatchers = () => {
+    if (editingGroup.matchers) {
+      return editingGroup.matchers.map(matcher => ({ 
+        value: matcher.value, 
+        type: matcher.type 
+      }));
+    }
+    
+    if (editingGroup.matchType === 'regex' && editingGroup.regexPatterns) {
+      return editingGroup.regexPatterns.map(pattern => ({ 
+        value: pattern, 
+        type: 'regex' 
+      }));
+    }
+    
+    const urlPrefixes = editingGroup.urlPrefixes || (editingGroup.urlPrefix ? [editingGroup.urlPrefix] : null);
+    if (urlPrefixes) {
+      return urlPrefixes.map(prefix => ({ 
+        value: prefix, 
+        type: 'prefix' 
+      }));
+    }
+    
+    // Default fallback
+    return [{ value: '', type: 'prefix' }];
+  };
+  
+  return {
+    groupName: editingGroup.name,
+    matchers: getMatchers()
+  };
+};
+
+/** */
+const simulateFormValidation = (groupName, matchers) => {
+  const validMatchers = matchers.filter(matcher => matcher.value && matcher.value.trim());      
+
+  if (!groupName || !groupName.trim() || validMatchers.length === 0) {
+    return { 
+      valid: false, 
+      error: 'Please provide a group name and at least one matcher' 
+    };
+  }    
+
+  /* Test regex patterns */
+  const regexMatchers = validMatchers.filter(matcher => matcher.type === 'regex');
+  for (const matcher of regexMatchers) {
+    try {
+      new RegExp(matcher.value);
+    } catch (error) {
+      return { 
+        valid: false, 
+        error: `Invalid regex pattern "${matcher.value}": ${error.message}` 
       };
-    };
+    }
+  }   
 
-    describe('Mixed Matcher Types', () => {
-      test('loads group with mixed matcher types correctly', () => {
-        const testGroup = {
-          name: 'Test Mixed Group',
-          matchers: [
-            { value: 'https://example.com/', type: 'prefix' },
-            { value: '^https://.*\\.github\\.io/.*', type: 'regex' },
-            { value: 'https://*/docs/**', type: 'glob' }
-          ]
-        };
+  return { valid: true, validMatchers };
+};
 
-        const result = simulateEditLoad(testGroup);
+test('loads group with mixed matcher types correctly', () => {
+  const testGroup = {
+    name: 'Test Mixed Group',
+    matchers: [
+      { value: 'https://example.com/', type: 'prefix' },
+      { value: '^https://.*\\.github\\.io/.*', type: 'regex' },
+      { value: 'https://*/docs/**', type: 'glob' }
+    ]
+  };
 
-        expect(result.groupName).toBe('Test Mixed Group');
-        expect(result.matchers).toEqual([
-          { value: 'https://example.com/', type: 'prefix' },
-          { value: '^https://.*\\.github\\.io/.*', type: 'regex' },
-          { value: 'https://*/docs/**', type: 'glob' }
-        ]);
-      });
+  const result = simulateEditLoad(testGroup);
 
-      test('preserves matcher order when loading', () => {
-        const testGroup = {
-          name: 'Order Test Group',
-          matchers: [
-            { value: 'third', type: 'glob' },
-            { value: 'first', type: 'prefix' },
-            { value: 'second', type: 'regex' }
-          ]
-        };
+  expect(result.groupName).toBe('Test Mixed Group');
+  expect(result.matchers).toEqual([
+    { value: 'https://example.com/', type: 'prefix' },
+    { value: '^https://.*\\.github\\.io/.*', type: 'regex' },
+    { value: 'https://*/docs/**', type: 'glob' }
+  ]);
+});
 
-        const result = simulateEditLoad(testGroup);
+test('preserves matcher order when loading', () => {
+  const testGroup = {
+    name: 'Order Test Group',
+    matchers: [
+      { value: 'third', type: 'glob' },
+      { value: 'first', type: 'prefix' },
+      { value: 'second', type: 'regex' }
+    ]
+  };
 
-        expect(result.matchers).toEqual([
-          { value: 'third', type: 'glob' },
-          { value: 'first', type: 'prefix' },
-          { value: 'second', type: 'regex' }
-        ]);
-      });
+  const result = simulateEditLoad(testGroup);
 
-      test('handles empty matchers array', () => {
-        const testGroup = {
-          name: 'Empty Group',
-          matchers: []
-        };
+  expect(result.matchers).toEqual([
+    { value: 'third', type: 'glob' },
+    { value: 'first', type: 'prefix' },
+    { value: 'second', type: 'regex' }
+  ]);
+});
 
-        const result = simulateEditLoad(testGroup);
+test('handles empty matchers array', () => {
+  const testGroup = {
+    name: 'Empty Group',
+    matchers: []
+  };
 
-        expect(result.groupName).toBe('Empty Group');
-        expect(result.matchers).toEqual([]);
-      });
-    });
+  const result = simulateEditLoad(testGroup);
 
-    describe('Legacy Format Support', () => {
-      test('loads legacy single urlPrefix format', () => {
-        const legacyGroup = {
-          name: 'Legacy URL Prefix Group',
-          urlPrefix: 'https://legacy.example.com/'
-        };
+  expect(result.groupName).toBe('Empty Group');
+  expect(result.matchers).toEqual([]);
+});
 
-        const result = simulateEditLoad(legacyGroup);
+test('loads single urlPrefix format', () => {
+  const oldGroup = {
+    name: 'Single URL Prefix Group',
+    urlPrefix: 'https://example.com/'
+  };
 
-        expect(result.groupName).toBe('Legacy URL Prefix Group');
-        expect(result.matchers).toEqual([
-          { value: 'https://legacy.example.com/', type: 'prefix' }
-        ]);
-      });
+  const result = simulateEditLoad(oldGroup);
 
-      test('loads legacy urlPrefixes array format', () => {
-        const legacyGroup = {
-          name: 'Legacy URL Prefixes Group',
-          urlPrefixes: ['https://site1.com/', 'https://site2.com/']
-        };
+  expect(result.groupName).toBe('Single URL Prefix Group');
+  expect(result.matchers).toEqual([
+    { value: 'https://example.com/', type: 'prefix' }
+  ]);
+});
 
-        const result = simulateEditLoad(legacyGroup);
+test('loads multiple urlPrefixes array format', () => {
+  const oldGroup = {
+    name: 'Multiple URL Prefixes Group',
+    urlPrefixes: ['https://site1.com/', 'https://site2.com/']
+  };
 
-        expect(result.groupName).toBe('Legacy URL Prefixes Group');
-        expect(result.matchers).toEqual([
-          { value: 'https://site1.com/', type: 'prefix' },
-          { value: 'https://site2.com/', type: 'prefix' }
-        ]);
-      });
+  const result = simulateEditLoad(oldGroup);
 
-      test('loads legacy regex patterns format', () => {
-        const legacyGroup = {
-          name: 'Legacy Regex Group',
-          matchType: 'regex',
-          regexPatterns: ['^https://.*\\.example\\.com', 'test.*pattern']
-        };
+  expect(result.groupName).toBe('Multiple URL Prefixes Group');
+  expect(result.matchers).toEqual([
+    { value: 'https://site1.com/', type: 'prefix' },
+    { value: 'https://site2.com/', type: 'prefix' }
+  ]);
+});
 
-        const result = simulateEditLoad(legacyGroup);
+test('loads regex patterns format', () => {
+  const regexGroup = {
+    name: 'Regex Group',
+    matchType: 'regex',
+    regexPatterns: ['^https://.*\\.example\\.com', 'test.*pattern']
+  };
 
-        expect(result.groupName).toBe('Legacy Regex Group');
-        expect(result.matchers).toEqual([
-          { value: '^https://.*\\.example\\.com', type: 'regex' },
-          { value: 'test.*pattern', type: 'regex' }
-        ]);
-      });
+  const result = simulateEditLoad(regexGroup);
 
-      test('handles empty legacy formats', () => {
-        const legacyGroup = {
-          name: 'Empty Legacy Group',
-          urlPrefixes: []
-        };
+  expect(result.groupName).toBe('Regex Group');
+  expect(result.matchers).toEqual([
+    { value: '^https://.*\\.example\\.com', type: 'regex' },
+    { value: 'test.*pattern', type: 'regex' }
+  ]);
+});
 
-        const result = simulateEditLoad(legacyGroup);
+test('handles empty backwards compatible formats', () => {
+  const emptyGroup = {
+    name: 'Empty Group',
+    urlPrefixes: []
+  };
 
-        expect(result.groupName).toBe('Empty Legacy Group');
-        expect(result.matchers).toEqual([]);
-      });
+  const result = simulateEditLoad(emptyGroup);
 
-      test('provides default matcher for completely empty group', () => {
-        const emptyGroup = {
-          name: 'Completely Empty Group'
-        };
+  expect(result.groupName).toBe('Empty Group');
+  expect(result.matchers).toEqual([]);
+});
 
-        const result = simulateEditLoad(emptyGroup);
+test('provides default matcher for completely empty group', () => {
+  const emptyGroup = {
+    name: 'Completely Empty Group'
+  };
 
-        expect(result.groupName).toBe('Completely Empty Group');
-        expect(result.matchers).toEqual([
-          { value: '', type: 'prefix' }
-        ]);
-      });
-    });
+  const result = simulateEditLoad(emptyGroup);
+  
+  expect(result.groupName).toBe('Completely Empty Group');
+  expect(result.matchers).toEqual([
+    { value: '', type: 'prefix' }
+  ]);
+});
 
-    describe('Format Priority', () => {
-      test('prioritizes matchers over legacy formats', () => {
-        const mixedGroup = {
-          name: 'Mixed Format Group',
-          matchers: [{ value: 'https://new.com/', type: 'prefix' }],
-          urlPrefixes: ['https://old.com/'], // Should be ignored
-          urlPrefix: 'https://legacy.com/' // Should be ignored
-        };
+test('prioritizes current matchers format over older formats', () => {
+  const mixedGroup = {
+    name: 'Mixed Format Group',
+    matchers: [{ value: 'https://current.com/', type: 'prefix' }],
+    urlPrefixes: ['https://old.com/'], // Should be ignored
+    urlPrefix: 'https://older.com/' // Should be ignored
+  };
 
-        const result = simulateEditLoad(mixedGroup);
+  const result = simulateEditLoad(mixedGroup);
 
-        expect(result.matchers).toEqual([
-          { value: 'https://new.com/', type: 'prefix' }
-        ]);
-      });
+  expect(result.matchers).toEqual([
+    { value: 'https://current.com/', type: 'prefix' }
+  ]);
+});
 
-      test('prioritizes regex patterns over urlPrefixes', () => {
-        const mixedGroup = {
-          name: 'Mixed Legacy Group',
-          matchType: 'regex',
-          regexPatterns: ['^https://regex\\.com'],
-          urlPrefixes: ['https://prefix.com/'] // Should be ignored
-        };
+test('prioritizes regex patterns over URL prefixes', () => {
+  const mixedGroup = {
+    name: 'Mixed Format Group',
+    matchType: 'regex',
+    regexPatterns: ['^https://regex\\.com'],
+    urlPrefixes: ['https://prefix.com/'] // Should be ignored
+  };
 
-        const result = simulateEditLoad(mixedGroup);
+  const result = simulateEditLoad(mixedGroup);
 
-        expect(result.matchers).toEqual([
-          { value: '^https://regex\\.com', type: 'regex' }
-        ]);
-      });
+  expect(result.matchers).toEqual([
+    { value: '^https://regex\\.com', type: 'regex' }
+  ]);
+});
 
-      test('prioritizes urlPrefixes over single urlPrefix', () => {
-        const mixedGroup = {
-          name: 'Mixed Legacy Group',
-          urlPrefixes: ['https://prefixes.com/'],
-          urlPrefix: 'https://single.com/' // Should be ignored
-        };
+test('prioritizes array urlPrefixes over single urlPrefix', () => {
+  const mixedGroup = {
+    name: 'Mixed Format Group',
+    urlPrefixes: ['https://array.com/'],
+    urlPrefix: 'https://single.com/' // Should be ignored
+  };
 
-        const result = simulateEditLoad(mixedGroup);
+  const result = simulateEditLoad(mixedGroup);
 
-        expect(result.matchers).toEqual([
-          { value: 'https://prefixes.com/', type: 'prefix' }
-        ]);
-      });
-    });
+  expect(result.matchers).toEqual([
+    { value: 'https://array.com/', type: 'prefix' }
+  ]);
+});
 
-    describe('Edge Cases', () => {
-      test('handles null/undefined group', () => {
-        expect(() => simulateEditLoad(null)).toThrow();
-        expect(() => simulateEditLoad(undefined)).toThrow();
-      });
+test('handles null/undefined group', () => {
+  expect(() => simulateEditLoad(null)).toThrow();
+  expect(() => simulateEditLoad(undefined)).toThrow();
+});
 
-      test('handles group with null name', () => {
-        const group = {
-          name: null,
-          matchers: [{ value: 'test', type: 'prefix' }]
-        };
+test('handles group with null name', () => {
+  const group = {
+    name: null,
+    matchers: [{ value: 'test', type: 'prefix' }]
+  };
 
-        const result = simulateEditLoad(group);
+  const result = simulateEditLoad(group);
 
-        expect(result.groupName).toBe(null);
-        expect(result.matchers).toEqual([{ value: 'test', type: 'prefix' }]);
-      });
+  expect(result.groupName).toBe(null);
+  expect(result.matchers).toEqual([{ value: 'test', type: 'prefix' }]);
+});
 
-      test('handles matchers with missing properties', () => {
-        const group = {
-          name: 'Malformed Group',
-          matchers: [
-            { value: 'test' }, // Missing type
-            { type: 'prefix' }, // Missing value
-            {} // Missing both
-          ]
-        };
+test('handles matchers with missing properties', () => {
+  const group = {
+    name: 'Malformed Group',
+    matchers: [
+      { value: 'test' }, // Missing type
+      { type: 'prefix' }, // Missing value
+      {} // Missing both
+    ]
+  };
 
-        const result = simulateEditLoad(group);
+  const result = simulateEditLoad(group);
 
-        expect(result.matchers).toEqual([
-          { value: 'test', type: undefined },
-          { value: undefined, type: 'prefix' },
-          { value: undefined, type: undefined }
-        ]);
-      });
-    });
-  });
+  expect(result.matchers).toEqual([
+    { value: 'test', type: undefined },
+    { value: undefined, type: 'prefix' },
+    { value: undefined, type: undefined }
+  ]);
+});
 
-  describe('Form Validation Simulation', () => {
-    const simulateFormValidation = (groupName, matchers) => {
-      const validMatchers = matchers.filter(matcher => matcher.value && matcher.value.trim());
-      
-      if (!groupName || !groupName.trim() || validMatchers.length === 0) {
-        return { valid: false, error: 'Please provide a group name and at least one matcher' };
-      }
-      
-      // Test regex patterns
-      const regexMatchers = validMatchers.filter(matcher => matcher.type === 'regex');
-      for (const matcher of regexMatchers) {
-        try {
-          new RegExp(matcher.value);
-        } catch (error) {
-          return { 
-            valid: false, 
-            error: `Invalid regex pattern "${matcher.value}": ${error.message}` 
-          };
-        }
-      }
-      
-      return { valid: true, validMatchers };
-    };
+test('validates complete form correctly', () => {
+  const result = simulateFormValidation('Test Group', [
+    { value: 'https://example.com/', type: 'prefix' },
+    { value: '^https://.*\\.test\\.com', type: 'regex' }
+  ]);
 
-    test('validates complete form correctly', () => {
-      const result = simulateFormValidation('Test Group', [
-        { value: 'https://example.com/', type: 'prefix' },
-        { value: '^https://.*\\.test\\.com', type: 'regex' }
-      ]);
+  expect(result.valid).toBe(true);
+  expect(result.validMatchers).toHaveLength(2);}
+);
+  
+test('rejects empty group name', () => {
+  
+  const result = simulateFormValidation('', [
+    { value: 'https://example.com/', type: 'prefix' }
+  ]);
+  
+  expect(result.valid).toBe(false);
+  expect(result.error).toBe('Please provide a group name and at least one matcher');}
+);
+  
+test('rejects form with no valid matchers', () => {
+  const result = simulateFormValidation('Test Group', [
+    { value: '', type: 'prefix' },
+    { value: '   ', type: 'prefix' }
+  ]);
+  
+  expect(result.valid).toBe(false);
+  expect(result.error).toBe('Please provide a group name and at least one matcher');}
+);
+  
+test('validates regex patterns', () => {
+  const result = simulateFormValidation('Test Group', [
+    { value: '[invalid regex', type: 'regex' }
+  ]);
 
-      expect(result.valid).toBe(true);
-      expect(result.validMatchers).toHaveLength(2);
-    });
+  expect(result.valid).toBe(false);
+  expect(result.error).toContain('Invalid regex pattern');}
+);
+  
+test('filters out empty matchers but keeps valid ones', () => {
+  const result = simulateFormValidation('Test Group', [
+    { value: 'https://valid.com/', type: 'prefix' },
+    { value: '', type: 'prefix' },
+    { value: '   ', type: 'prefix' },
+    { value: 'https://another.com/', type: 'prefix' }
+  ]);
 
-    test('rejects empty group name', () => {
-      const result = simulateFormValidation('', [
-        { value: 'https://example.com/', type: 'prefix' }
-      ]);
-
-      expect(result.valid).toBe(false);
-      expect(result.error).toBe('Please provide a group name and at least one matcher');
-    });
-
-    test('rejects form with no valid matchers', () => {
-      const result = simulateFormValidation('Test Group', [
-        { value: '', type: 'prefix' },
-        { value: '   ', type: 'prefix' }
-      ]);
-
-      expect(result.valid).toBe(false);
-      expect(result.error).toBe('Please provide a group name and at least one matcher');
-    });
-
-    test('validates regex patterns', () => {
-      const result = simulateFormValidation('Test Group', [
-        { value: '[invalid regex', type: 'regex' }
-      ]);
-
-      expect(result.valid).toBe(false);
-      expect(result.error).toContain('Invalid regex pattern');
-    });
-
-    test('filters out empty matchers but keeps valid ones', () => {
-      const result = simulateFormValidation('Test Group', [
-        { value: 'https://valid.com/', type: 'prefix' },
-        { value: '', type: 'prefix' },
-        { value: '   ', type: 'prefix' },
-        { value: 'https://another.com/', type: 'prefix' }
-      ]);
-
-      expect(result.valid).toBe(true);
-      expect(result.validMatchers).toHaveLength(2);
-      expect(result.validMatchers.map(m => m.value)).toEqual([
-        'https://valid.com/',
-        'https://another.com/'
-      ]);
-    });
-  });
+  expect(result.valid).toBe(true);
+  expect(result.validMatchers).toHaveLength(2);
+  expect(result.validMatchers.map(m => m.value)).toEqual([
+    'https://valid.com/',
+    'https://another.com/'
+  ]);
 });
