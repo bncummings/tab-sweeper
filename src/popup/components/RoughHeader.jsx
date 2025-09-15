@@ -31,13 +31,10 @@ const RoughHeader = ({ children, style }) => {
     // Clear canvas
     ctx.clearRect(0, 0, rect.width, rect.height);
     
-    // Draw hachure background
+    // Draw solid background
     rc.rectangle(0, 0, rect.width, rect.height, {
       fill: STYLES.colors.primary,
-      fillStyle: 'hachure',
-      hachureAngle: 45,
-      hachureGap: 4,
-      fillWeight: 3,
+      fillStyle: 'solid',
       stroke: 'none',
       roughness: 1.5
     });
@@ -76,7 +73,6 @@ const RoughHeader = ({ children, style }) => {
       rc.rectangle(0, 0, rect.width, rect.height, {
         fill: STYLES.colors.primary,
         fillStyle: 'solid',
-        fillWeight: 2,
         stroke: 'none',
         roughness: 1.5
       });

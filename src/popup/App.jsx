@@ -1,15 +1,13 @@
 import React, { useState } from 'react';
 import TabGroup from './components/TabGroup';
-import CreateTabGroupModal from './components/CreateTabGroupModal';
-import SketchyButton from './components/SketchyButton';
-import RoughHeader from './components/RoughHeader';
-import Logo from './components/Logo';
+import CreateEditTabGroupPage from './components/CreateEditTabGroupPage';
+import TopBar from './components/TopBar';
 import { useTabGroups } from './hooks/useTabGroups';
 import { STYLES } from './constants.js';
 
 const App = () => {
   const [isGrouping, setIsGrouping] = useState(false);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [currentView, setCurrentView] = useState('main'); // 'main' or 'create-edit'
   const [editingGroup, setEditingGroup] = useState(null);
 
   const {
@@ -84,20 +82,32 @@ const App = () => {
     const group = userTabGroups.find(g => g.name === groupName);
     if (group) {
       setEditingGroup(group);
-      setIsModalOpen(true);
+      setCurrentView('create-edit');
     }
   };
 
-  const handleCloseModal = () => {
-    setIsModalOpen(false);
+  const handleCreateNew = () => {
+    setEditingGroup(null);
+    setCurrentView('create-edit');
+  };
+
+  const handleBackToMain = () => {
+    setCurrentView('main');
     setEditingGroup(null);
   };
 
   const handleCreateOrUpdate = async (...args) => {
-    if (editingGroup) {
-      await updateGroup(...args);
-    } else {
-      await createTabGroup(...args);
+    try {
+      if (editingGroup) {
+        await updateGroup(...args);
+      } else {
+        await createTabGroup(...args);
+      }
+      // Navigate back to main view after successful save
+      handleBackToMain();
+    } catch (error) {
+      // Error handling is done in the page component
+      throw error;
     }
   };
 
@@ -111,32 +121,6 @@ const App = () => {
       fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif',
       background: '#ffffff',
       color: '#333'
-    },
-    header: {
-      padding: '8px',
-      textAlign: 'center',
-      position: 'relative'
-    },
-    headerContent: {
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      marginBottom: '8px'
-    },
-    title: {
-      margin: 0,
-      color: STYLES.colors.text,
-      fontSize: '28px',
-      fontWeight: '300',
-      textShadow: '0 3px 6px rgba(0, 0, 0, 0.4)',
-      letterSpacing: '2px',
-      textAlign: 'left'
-    },
-    buttonGroup: {
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      gap: '12px'
     },
     main: {
       flex: 1,
@@ -176,12 +160,21 @@ const App = () => {
   };
 
 
+  // Show create/edit page
+  if (currentView === 'create-edit') {
+    return (
+      <CreateEditTabGroupPage
+        onSave={handleCreateOrUpdate}
+        onCancel={handleBackToMain}
+        editingGroup={editingGroup}
+      />
+    );
+  }
+
   if (isLoading) {
     return (
       <div style={styles.app}>
-        <RoughHeader style={styles.header}>
-          <Logo color={STYLES.colors.white}/>
-        </RoughHeader>
+        <TopBar />
         <main style={styles.main}>
           <div style={styles.loadingMessage}>Loading tabs...</div>
         </main>
@@ -192,9 +185,7 @@ const App = () => {
   if (error) {
     return (
       <div style={styles.app}>
-        <RoughHeader style={styles.header}>
-          <Logo color={STYLES.colors.white}/>
-        </RoughHeader>
+        <TopBar />
         <main style={styles.main}>
           <div style={styles.loadingMessage}>
             <p>Error: {error}</p>
@@ -205,55 +196,14 @@ const App = () => {
     );
   }
 
+  // Main view
   return (
     <div style={styles.app}>
-      <RoughHeader style={styles.header}>
-        <div style={styles.headerContent}>
-          <Logo color={STYLES.colors.white} />
-          
-          <div style={styles.buttonGroup}>
-            <SketchyButton
-              variant="secondary"
-              onClick={() => handleGroupTabs()}
-              disabled={isGrouping}
-              title="Group all tabs"
-              size="medium"
-              strokeColor="rgba(120, 120, 120, 1)"
-              data-testid="group-all-button"
-              style={{ 
-                color: STYLES.colors.primary,
-                fontSize: '14px',
-                fontWeight: '800',
-                textTransform: 'uppercase',
-                letterSpacing: '1px',
-                padding: '12px 10px',
-                whiteSpace: 'nowrap'
-              }}
-            >
-              {isGrouping ? 'Grouping...' : 'Group All'}
-            </SketchyButton>
-            
-            <SketchyButton
-              variant="secondary"
-              onClick={() => setIsModalOpen(true)}
-              title="Create new tab group"
-              size="medium"
-              strokeColor="rgba(120, 120, 120, 1)"
-              data-testid="create-group-button"
-              style={{ 
-                color: STYLES.colors.primary,
-                fontSize: '22px',
-                fontWeight: '800',
-                textTransform: 'uppercase',
-                letterSpacing: '1px',
-                padding: '8px 12px'
-              }}
-            >
-              +
-            </SketchyButton>
-          </div>
-        </div>
-      </RoughHeader>
+      <TopBar
+        isGrouping={isGrouping}
+        onGroupAll={() => handleGroupTabs()}
+        onCreateNew={handleCreateNew}
+      />
       
       <main style={styles.main}>
         {Object.keys(tabGroups).length === 0 ? (
@@ -287,13 +237,6 @@ const App = () => {
           </div>
         )}
       </main>
-      
-      <CreateTabGroupModal
-        isOpen={isModalOpen}
-        onClose={handleCloseModal}
-        onCreateGroup={handleCreateOrUpdate}
-        editingGroup={editingGroup}
-      />
     </div>
   );
 };
