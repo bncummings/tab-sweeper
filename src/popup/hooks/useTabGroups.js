@@ -315,22 +315,6 @@ export const useTabGroups = () => {
     setTabGroups(newTabGroups);
   }, [userTabGroups, tabGroups]);
 
-  useEffect(() => {
-    initializeTabGroups();
-  }, [initializeTabGroups]);
-
-  // Refresh tab groups when popup becomes visible to catch manually added tabs
-  useEffect(() => {
-    const handleVisibilityChange = () => {
-      if (!document.hidden && userTabGroups.length > 0) {
-        refreshTabGroups();
-      }
-    };
-
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
-  }, [refreshTabGroups, userTabGroups.length]);
-
   const refreshTabGroups = useCallback(async () => {
     try {
       const tabGroupObjects = userTabGroups.map(convertLegacyGroupFormat);
@@ -354,6 +338,22 @@ export const useTabGroups = () => {
       console.error('Error refreshing tab groups:', error);
     }
   }, [userTabGroups, getTabsFromChromeGroup]);
+
+  useEffect(() => {
+    initializeTabGroups();
+  }, [initializeTabGroups]);
+
+  // Refresh tab groups when popup becomes visible to catch manually added tabs
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden && userTabGroups.length > 0) {
+        refreshTabGroups();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [refreshTabGroups, userTabGroups.length]);
 
   return {
     tabGroups,
