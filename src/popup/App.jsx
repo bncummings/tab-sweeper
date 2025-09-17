@@ -44,8 +44,53 @@ const App = () => {
       for (const [name, tabs] of Object.entries(groupsToProcess)) {
         if (tabs.length === 0) continue;
         
+        // Check if a Chrome tab group with this name already exists
+        let existingGroup = null;
+        try {
+          const windows = await chrome.windows.getAll({ populate: true });
+          for (const win of windows) {
+            if (chrome.tabGroups.query) {
+              const groups = await chrome.tabGroups.query({ windowId: win.id, title: name });
+              if (groups.length > 0) {
+                existingGroup = groups[0]; // Use the first matching group
+                break;
+              }
+            }
+          }
+        } catch (error) {
+          console.warn('Error checking for existing groups:', error);
+        }
+
         const tabIds = tabs.map(({ id }) => id);
-        const tabGroup = await chrome.tabs.group({ tabIds });
+        let tabGroup;
+
+        if (existingGroup) {
+          // Add tabs to existing group
+          try {
+            // Get tabs already in the group to avoid duplicates
+            const existingTabsInGroup = await chrome.tabs.query({ 
+              windowId: existingGroup.windowId, 
+              groupId: existingGroup.id 
+            });
+            const existingTabIds = new Set(existingTabsInGroup.map(tab => tab.id));
+            
+            // Only add tabs that aren't already in the group
+            const newTabIds = tabIds.filter(id => !existingTabIds.has(id));
+            
+            if (newTabIds.length > 0) {
+              await chrome.tabs.group({ tabIds: newTabIds, groupId: existingGroup.id });
+            }
+            
+            tabGroup = existingGroup.id;
+          } catch (error) {
+            console.warn('Error adding tabs to existing group, creating new group:', error);
+            // Fallback: create new group if adding to existing fails
+            tabGroup = await chrome.tabs.group({ tabIds });
+          }
+        } else {
+          // Create new group
+          tabGroup = await chrome.tabs.group({ tabIds });
+        }
         
         // Find the user group to get its color
         const userGroup = userTabGroups.find(g => g.name === name);

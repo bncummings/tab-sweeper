@@ -126,6 +126,32 @@ export const useTabGroups = () => {
     }
   }, []);
 
+  const getTabsFromChromeGroup = useCallback(async (groupName) => {
+    try {
+      if (!chrome?.tabGroups || !chrome?.tabs) {
+        return [];
+      }
+
+      const windows = await chrome.windows.getAll({ populate: true });
+      const tabsFromChromeGroups = [];
+
+      for (const win of windows) {
+        if (!chrome.tabGroups.query) continue;
+        const groups = await chrome.tabGroups.query({ windowId: win.id, title: groupName });
+        
+        for (const group of groups) {
+          const tabsInGroup = await chrome.tabs.query({ windowId: win.id, groupId: group.id });
+          tabsFromChromeGroups.push(...tabsInGroup.filter(tab => isValidUrl(tab.url)));
+        }
+      }
+
+      return tabsFromChromeGroups;
+    } catch (error) {
+      console.error('Error getting tabs from Chrome group:', error);
+      return [];
+    }
+  }, []);
+
   const initializeTabGroups = useCallback(async () => {
     try {
       if (!chrome?.tabs) {
@@ -154,8 +180,15 @@ export const useTabGroups = () => {
       const groups = {};
       
       for (const group of tabGroupObjects) {
-        const matchingTabs = await findMatchingTabs(group.matchers);
-        const uniqueTabs = removeDuplicateTabs(matchingTabs);
+        // Get pattern-matched tabs
+        const patternMatchedTabs = await findMatchingTabs(group.matchers);
+        
+        // Get tabs from existing Chrome tab groups with the same name
+        const chromeGroupTabs = await getTabsFromChromeGroup(group.name);
+        
+        // Merge both sets of tabs and remove duplicates
+        const allTabs = [...patternMatchedTabs, ...chromeGroupTabs];
+        const uniqueTabs = removeDuplicateTabs(allTabs);
         groups[group.name] = sortTabsByTitle(uniqueTabs);
       }
 
@@ -167,7 +200,7 @@ export const useTabGroups = () => {
       setIsLoading(false);
       setTabGroups({});
     }
-  }, [detectManualTabGroups, syncWithChromeTabGroups]);
+  }, [detectManualTabGroups, syncWithChromeTabGroups, getTabsFromChromeGroup]);
 
   const createTabGroup = useCallback(async (groupName, matchers, color = 'blue') => {
     const validMatchers = matchers
@@ -185,12 +218,19 @@ export const useTabGroups = () => {
     await storage.saveTabGroups(updatedTabGroups);
     setUserTabGroups(updatedTabGroups);
     
-    const matchingTabs = await findMatchingTabs(validMatchers);
-    const uniqueTabs = removeDuplicateTabs(matchingTabs);
+    // Get pattern-matched tabs
+    const patternMatchedTabs = await findMatchingTabs(validMatchers);
+    
+    // Get tabs from existing Chrome tab groups with the same name
+    const chromeGroupTabs = await getTabsFromChromeGroup(groupName);
+    
+    // Merge both sets of tabs and remove duplicates
+    const allTabs = [...patternMatchedTabs, ...chromeGroupTabs];
+    const uniqueTabs = removeDuplicateTabs(allTabs);
     const sortedTabs = sortTabsByTitle(uniqueTabs);
     
     setTabGroups(prev => ({ ...prev, [groupName]: sortedTabs }));
-  }, [userTabGroups]);
+  }, [userTabGroups, getTabsFromChromeGroup]);
 
   const updateGroupColor = useCallback(async (groupName, color) => {
     const updatedTabGroups = userTabGroups.map(group => 
@@ -227,12 +267,19 @@ export const useTabGroups = () => {
       delete newTabGroups[originalName];
     }
     
-    const matchingTabs = await findMatchingTabs(validMatchers);
-    const uniqueTabs = removeDuplicateTabs(matchingTabs);
+    // Get pattern-matched tabs
+    const patternMatchedTabs = await findMatchingTabs(validMatchers);
+    
+    // Get tabs from existing Chrome tab groups with the same name
+    const chromeGroupTabs = await getTabsFromChromeGroup(newName);
+    
+    // Merge both sets of tabs and remove duplicates
+    const allTabs = [...patternMatchedTabs, ...chromeGroupTabs];
+    const uniqueTabs = removeDuplicateTabs(allTabs);
     const sortedTabs = sortTabsByTitle(uniqueTabs);
     
     setTabGroups({ ...newTabGroups, [newName]: sortedTabs });
-  }, [userTabGroups, tabGroups]);
+  }, [userTabGroups, tabGroups, getTabsFromChromeGroup]);
 
   const deleteGroup = useCallback(async (groupName) => {
     if (chrome?.tabGroups && chrome?.tabs) {
@@ -272,6 +319,42 @@ export const useTabGroups = () => {
     initializeTabGroups();
   }, [initializeTabGroups]);
 
+  // Refresh tab groups when popup becomes visible to catch manually added tabs
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden && userTabGroups.length > 0) {
+        refreshTabGroups();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [refreshTabGroups, userTabGroups.length]);
+
+  const refreshTabGroups = useCallback(async () => {
+    try {
+      const tabGroupObjects = userTabGroups.map(convertLegacyGroupFormat);
+      const groups = {};
+      
+      for (const group of tabGroupObjects) {
+        // Get pattern-matched tabs
+        const patternMatchedTabs = await findMatchingTabs(group.matchers);
+        
+        // Get tabs from existing Chrome tab groups with the same name
+        const chromeGroupTabs = await getTabsFromChromeGroup(group.name);
+        
+        // Merge both sets of tabs and remove duplicates
+        const allTabs = [...patternMatchedTabs, ...chromeGroupTabs];
+        const uniqueTabs = removeDuplicateTabs(allTabs);
+        groups[group.name] = sortTabsByTitle(uniqueTabs);
+      }
+
+      setTabGroups(groups);
+    } catch (error) {
+      console.error('Error refreshing tab groups:', error);
+    }
+  }, [userTabGroups, getTabsFromChromeGroup]);
+
   return {
     tabGroups,
     userTabGroups,
@@ -281,6 +364,7 @@ export const useTabGroups = () => {
     updateGroup,
     updateGroupColor,
     deleteGroup,
-    syncWithChromeTabGroups
+    syncWithChromeTabGroups,
+    refreshTabGroups
   };
 };
