@@ -1,6 +1,6 @@
 {
   "name": "Tab Sweeper",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "A Chrome extension for grouping tabs",
   "dependencies": {
     "react": "^18.2.0",
