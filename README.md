@@ -1,15 +1,11 @@
 ### Setup
-1. Install dependencies:
+1. Do npm:
    ```bash
    npm install
-   ```
-
-2. Build the extension:
-   ```bash
    npm run build
    ```
 
-3. Load the extension in Chrome:
+2. Load the extension in Chrome:
    - Open Chrome and go to `chrome://extensions/`
    - Enable "Developer mode"
    - Click "Load unpacked" and select the `dist` folder
